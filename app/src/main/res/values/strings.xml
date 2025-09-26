@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Nutrini</string>
+    <string name="title_activity_water">WaterActivity</string>
+    <string name="title_activity_food">FoodActivity</string>
+    <string name="title_activity_exercise">ExerciseActivity</string>
+    <string name="title_activity_store">StoreActivity</string>
+</resources>
