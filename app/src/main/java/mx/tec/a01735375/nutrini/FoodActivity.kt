@@ -138,7 +138,7 @@ fun FoodView(navController: NavController) {
                 Text(
                     text = "¡Listo!",
                     color = Color.White,
-                    fontSize = 24.sp,
+                    fontSize = 34.sp,
                     fontWeight = FontWeight.Normal,
                     fontFamily = cherryFamily
                 )
@@ -224,7 +224,7 @@ fun FoodOption(
                 painter = painterResource(id = iconResource),
                 contentDescription = label,
                 modifier = Modifier
-                    .size(80.dp)
+                    .size(90.dp)
                     .padding(4.dp),
                 contentScale = ContentScale.Fit
             )
@@ -247,7 +247,7 @@ fun FoodOption(
         Text(
             text = label,
             color = Color.White,
-            fontSize = 22.sp,
+            fontSize = 34.sp,
             fontWeight = FontWeight.Normal,
             fontFamily = cherryFamily,
             textAlign = TextAlign.Center

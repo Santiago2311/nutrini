@@ -144,26 +144,6 @@ fun Platforms(modifier: Modifier = Modifier) {
             contentDescription = "Platform",
             modifier = Modifier
                 .offset(
-                    x = screenWidth * 0.7f,
-                    y = screenHeight * 0.65f
-                )
-                .size(300.dp)
-        )
-        Image(
-            painter = painterResource(id = R.drawable.plataforma_grande),
-            contentDescription = "Platform",
-            modifier = Modifier
-                .offset(
-                    x = screenWidth * 0.45f,
-                    y = screenHeight * 0.65f
-                )
-                .size(300.dp)
-        )
-        Image(
-            painter = painterResource(id = R.drawable.plataforma_grande),
-            contentDescription = "Platform",
-            modifier = Modifier
-                .offset(
                     x = screenWidth * 0.65f,
                     y = screenHeight * 0.45f
                 )

@@ -61,14 +61,14 @@ fun StoreView(navController: NavController) {
     LockScreenOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
 
     val items = listOf(
-        ShopItem("Sillon", 1000, "comprar", Color(0xFF4A90E2), R.drawable.sillon),
+        ShopItem("Sillon", 1000, "comprar", Color(0xFF55AA2A), R.drawable.sillon),
         ShopItem("Poster", 900, "usar", Color(0xFF7B68EE), R.drawable.poster),
-        ShopItem("Ventana", 2000, "comprar", Color(0xFF4A90E2), R.drawable.ventana),
-        ShopItem("Planta", 3000, "comprar", Color(0xFF4A90E2), R.drawable.planta),
+        ShopItem("Ventana", 2000, "comprar", Color(0xFF55AA2A), R.drawable.ventana),
+        ShopItem("Planta", 3000, "comprar", Color(0xFF55AA2A), R.drawable.planta),
         ShopItem("Libros", 1500, "quitar", Color(0xFFE74C3C), R.drawable.estante_de_libros),
-        ShopItem("Mesa Redonda", 2000, "comprar", Color(0xFF4A90E2), R.drawable.mesa_redonda),
-        ShopItem("Lampara", 1000, "comprar", Color(0xFF4A90E2), R.drawable.lampara),
-        ShopItem("Comedor", 1500, "comprar", Color(0xFF4A90E2), R.drawable.comedor)
+        ShopItem("Mesa", 2000, "comprar", Color(0xFF55AA2A), R.drawable.mesa_redonda),
+        ShopItem("Lampara", 1000, "comprar", Color(0xFF55AA2A), R.drawable.lampara),
+        ShopItem("Comedor", 1500, "comprar", Color(0xFF55AA2A), R.drawable.comedor)
     )
 
     Column(

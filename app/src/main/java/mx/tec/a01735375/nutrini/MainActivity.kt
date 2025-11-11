@@ -164,7 +164,8 @@ fun PetImageArea(modifier: Modifier = Modifier) {
 @Composable
 fun BottomNavigation(modifier: Modifier = Modifier, navController: NavController) {
     Row(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth()
+            .padding(bottom = 12.dp),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         NavigationButton(
@@ -220,7 +221,7 @@ fun NavigationButton(
         Text(
             text = label,
             color = Color.White,
-            fontSize = 20.sp,
+            fontSize = 26.sp,
             fontWeight = FontWeight.Normal,
             fontFamily = cherryFamily
         )
