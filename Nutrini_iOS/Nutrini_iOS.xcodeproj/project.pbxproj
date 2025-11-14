@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 90;
 	objects = {
 
 /* Begin PBXFileReference section */
@@ -21,10 +21,8 @@
 /* Begin PBXFrameworksBuildPhase section */
 		83D27A9F2E808096000DDD2E /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
@@ -58,14 +56,10 @@
 			);
 			buildRules = (
 			);
-			dependencies = (
-			);
 			fileSystemSynchronizedGroups = (
 				83D27AA42E808096000DDD2E /* Nutrini_iOS */,
 			);
 			name = Nutrini_iOS;
-			packageProductDependencies = (
-			);
 			productName = Nutrini_iOS;
 			productReference = 83D27AA22E808096000DDD2E /* Nutrini_iOS.app */;
 			productType = "com.apple.product-type.application";
@@ -78,7 +72,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1640;
-				LastUpgradeCheck = 1640;
+				LastUpgradeCheck = 2610;
 				TargetAttributes = {
 					83D27AA12E808096000DDD2E = {
 						CreatedOnToolsVersion = 16.4;
@@ -94,7 +88,7 @@
 			);
 			mainGroup = 83D27A992E808095000DDD2E;
 			minimizedProjectReferenceProxies = 1;
-			preferredProjectObjectVersion = 77;
+			preferredProjectObjectVersion = 90;
 			productRefGroup = 83D27AA32E808096000DDD2E /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -107,25 +101,21 @@
 /* Begin PBXResourcesBuildPhase section */
 		83D27AA02E808096000DDD2E /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		83D27A9E2E808096000DDD2E /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		83D27AAB2E808098000DDD2E /* Debug */ = {
+		83D27AAB2E808098000DDD2E /* Debug configuration for PBXProject "Nutrini_iOS" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -183,12 +173,13 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
 		};
-		83D27AAC2E808098000DDD2E /* Release */ = {
+		83D27AAC2E808098000DDD2E /* Release configuration for PBXProject "Nutrini_iOS" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -239,12 +230,13 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
 		};
-		83D27AAE2E808098000DDD2E /* Debug */ = {
+		83D27AAE2E808098000DDD2E /* Debug configuration for PBXNativeTarget "Nutrini_iOS" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -258,6 +250,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -271,7 +264,7 @@
 			};
 			name = Debug;
 		};
-		83D27AAF2E808098000DDD2E /* Release */ = {
+		83D27AAF2E808098000DDD2E /* Release configuration for PBXNativeTarget "Nutrini_iOS" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -285,6 +278,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -304,19 +298,17 @@
 		83D27A9D2E808096000DDD2E /* Build configuration list for PBXProject "Nutrini_iOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				83D27AAB2E808098000DDD2E /* Debug */,
-				83D27AAC2E808098000DDD2E /* Release */,
+				83D27AAB2E808098000DDD2E /* Debug configuration for PBXProject "Nutrini_iOS" */,
+				83D27AAC2E808098000DDD2E /* Release configuration for PBXProject "Nutrini_iOS" */,
 			);
-			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 		83D27AAD2E808098000DDD2E /* Build configuration list for PBXNativeTarget "Nutrini_iOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				83D27AAE2E808098000DDD2E /* Debug */,
-				83D27AAF2E808098000DDD2E /* Release */,
+				83D27AAE2E808098000DDD2E /* Debug configuration for PBXNativeTarget "Nutrini_iOS" */,
+				83D27AAF2E808098000DDD2E /* Release configuration for PBXNativeTarget "Nutrini_iOS" */,
 			);
-			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */

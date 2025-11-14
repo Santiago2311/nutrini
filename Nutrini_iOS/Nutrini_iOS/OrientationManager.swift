@@ -1,8 +1,8 @@
 //
 //  OrientationManager.swift
-//  Interfaces
+//  Nutrini_iOS
 //
-//  Created by Oriana I. Cañizales Hdz. on 21/09/25.
+//  Created by Alumno on 14/11/25.
 //
 
 import SwiftUI
@@ -14,4 +14,3 @@ struct OrientationManager {
         }
     }
 }
-

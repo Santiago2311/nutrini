@@ -1,13 +1,13 @@
 //
-//  ContentView.swift
-//  Interfaces
+//  ExerciseView.swift
+//  Nutrini_iOS
 //
-//  Created by Oriana I. Cañizales Hdz. on 15/09/25.
+//  Created by Alumno on 14/11/25.
 //
 
 import SwiftUI
 
-struct ContentView: View {
+struct ExerciseView: View {
     var body: some View {
         ZStack {
             Color.blue
@@ -119,6 +119,6 @@ struct ContentView: View {
 }
 
 #Preview(traits: .landscapeLeft) {
-    ContentView()
+    ExerciseView()
         //.previewInterfaceOrientation(.landscapeLeft)
 }
