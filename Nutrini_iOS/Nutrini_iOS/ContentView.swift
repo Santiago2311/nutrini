@@ -7,8 +7,6 @@
 
 import SwiftUI
 
-import SwiftUI
-
 struct ContentView: View {
     var body: some View {
         VStack(spacing: 60) {
@@ -20,15 +18,30 @@ struct ContentView: View {
                 .padding(.horizontal)
 
             Image("mascota_icon")
-                
-            HStack(spacing: 10) {
-                MenuButton(iconName: "comida_icon", label: "Comida")
-                MenuButton(iconName: "agua_icon", label: "Agua")
-                MenuButton(iconName: "ejercicio_icon", label: "Ejercicio")
-                MenuButton(iconName: "compras_icon", label: "Closet")
+            
+            HStack {
+                NavigationStack {
+                    HStack(spacing: 10) {
+                        NavigationLink(destination: FoodView()) {
+                            MenuButton(iconName: "comida_icon", label: "Comida")
+                        }
+                        
+                        NavigationLink(destination: WaterView()) {
+                            MenuButton(iconName: "agua_icon", label: "Agua")
+                        }
+                        
+                        NavigationLink(destination: ExerciseView()) {
+                            MenuButton(iconName: "ejercicio_icon", label: "Ejercicio")
+                        }
+                        
+                        NavigationLink(destination: ClosetView()) {
+                            MenuButton(iconName: "compras_icon", label: "Closet")
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.bottom, 20)
+                }
             }
-            .padding(.horizontal)
-            .padding(.bottom, 20)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(red: 45/255, green: 114/255, blue: 218/255))

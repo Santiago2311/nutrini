@@ -112,8 +112,11 @@ struct ExerciseView: View {
             }
             .ignoresSafeArea()
         }
-            .onAppear {
-                    OrientationManager.lockOrientation(.landscape) // 🔒 horizontal
+        .onAppear {
+                OrientationManager.lockOrientation(.landscape) // 🔒 horizontal
+        }
+        .onDisappear {
+                OrientationManager.lockOrientation(.portrait) // 🔓 restaurar vertical
         }
     }
 }
