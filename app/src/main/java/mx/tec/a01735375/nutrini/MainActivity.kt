@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.pm.ActivityInfo
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
@@ -203,10 +204,10 @@ fun NavigationButton(
     ) {
         Button(
             onClick = onClick,
-            modifier = Modifier.size(90.dp),
+            modifier = Modifier.size(80.dp),
             colors = ButtonDefaults.buttonColors(containerColor = backgroundColor),
             shape = RoundedCornerShape(16.dp),
-            contentPadding = PaddingValues(8.dp)
+            contentPadding = PaddingValues(4.dp)
         ) {
             Image(
                 painter = painterResource(id = iconResource),
@@ -236,7 +237,7 @@ fun PetCareScreenPreview() {
 
 @Composable
 fun LockScreenOrientation(orientation: Int) {
-    val activity = LocalContext.current as? Activity
+    val activity = LocalActivity.current as? Activity
     DisposableEffect(orientation) {
         val previous = activity?.requestedOrientation
         activity?.requestedOrientation = orientation

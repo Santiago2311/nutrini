@@ -55,7 +55,7 @@ class FoodActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             NutriniTheme {
-                //FoodView
+                //FoodView()
             }
         }
     }
@@ -153,6 +153,7 @@ fun TopFoodSection(
     onFoodSelected: (String) -> Unit,
     navController: NavController
 ) {
+    // val comida = listOf<String>("aguacate", "almendra", "bolillo")
     Column(
         modifier = Modifier
             .padding(bottom = 30.dp)
@@ -182,27 +183,170 @@ fun TopFoodSection(
                 .padding(horizontal = 10.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
+            // for (c in comida) {
+            // FoodOption(
+            //    iconResource = R.drawable.c,
+            //    label = "$c".uppercase(),
+            //    isSelected = selectedFood == "c",
+            //    onClick = { onFoodSelected("c") }
+            // )
+            // }
             FoodOption(
-                iconResource = R.drawable.huevo_frito,
+                iconResource = R.drawable.aguacate,
+                label = "Aguacate",
+                isSelected = selectedFood == "aguacate",
+                onClick = { onFoodSelected("aguacate") }
+            )
+            FoodOption(
+                iconResource = R.drawable.almendra,
+                label = "Almendra",
+                isSelected = selectedFood == "almendra",
+                onClick = { onFoodSelected("almendra") }
+            )
+            FoodOption(
+                iconResource = R.drawable.bolillo,
+                label = "Bolillo",
+                isSelected = selectedFood == "bolillo",
+                onClick = { onFoodSelected("bolillo") }
+            )
+            FoodOption(
+                iconResource = R.drawable.brocoli,
+                label = "Brocoli",
+                isSelected = selectedFood == "brocoli",
+                onClick = { onFoodSelected("brocoli") }
+            )
+            FoodOption(
+                iconResource = R.drawable.cebolla,
+                label = "Cebolla",
+                isSelected = selectedFood == "cebolla",
+                onClick = { onFoodSelected("cebolla") }
+            )
+            FoodOption(
+                iconResource = R.drawable.chile,
+                label = "Chile",
+                isSelected = selectedFood == "chile",
+                onClick = { onFoodSelected("chile") }
+            )
+            FoodOption(
+                iconResource = R.drawable.cuerno,
+                label = "Cuerno",
+                isSelected = selectedFood == "cuerno",
+                onClick = { onFoodSelected("cuerno") }
+            )
+            FoodOption(
+                iconResource = R.drawable.frijoles,
+                label = "Frijoles",
+                isSelected = selectedFood == "frijoles",
+                onClick = { onFoodSelected("frijoles") }
+            )
+            FoodOption(
+                iconResource = R.drawable.frijoles_negros,
+                label = "Frijoles Negros",
+                isSelected = selectedFood == "frijoles_negros",
+                onClick = { onFoodSelected("frijol_negros") }
+            )
+            FoodOption(
+                iconResource = R.drawable.garbanzos,
+                label = "Garbanzos",
+                isSelected = selectedFood == "garbanzos",
+                onClick = { onFoodSelected("garbanzos") }
+            )
+            FoodOption(
+                iconResource = R.drawable.habas,
+                label = "Habas",
+                isSelected = selectedFood == "habas",
+                onClick = { onFoodSelected("habas") }
+            )
+            FoodOption(
+                iconResource = R.drawable.huevo,
                 label = "Huevo",
                 isSelected = selectedFood == "huevo",
                 onClick = { onFoodSelected("huevo") }
             )
-
             FoodOption(
-                iconResource = R.drawable.uva,
-                label = "Uvas",
-                isSelected = selectedFood == "uva",
-                onClick = { onFoodSelected("uva") }
+                iconResource = R.drawable.lentejas,
+                label = "Lentejas",
+                isSelected = selectedFood == "lentejas",
+                onClick = { onFoodSelected("lentejas") }
             )
-
+            FoodOption(
+                iconResource = R.drawable.mani,
+                label = "Mani",
+                isSelected = selectedFood == "mani",
+                onClick = { onFoodSelected("mani") }
+            )
+            FoodOption(
+                iconResource = R.drawable.pan,
+                label = "Pan",
+                isSelected = selectedFood == "pan",
+                onClick = { onFoodSelected("pan") }
+            )
+            FoodOption(
+                iconResource = R.drawable.papa,
+                label = "Papa",
+                isSelected = selectedFood == "papa",
+                onClick = { onFoodSelected("papa") }
+            )
+            FoodOption(
+                iconResource = R.drawable.pera,
+                label = "Pera",
+                isSelected = selectedFood == "pera",
+                onClick = { onFoodSelected("pera") }
+            )
+            FoodOption(
+                iconResource = R.drawable.pescado,
+                label = "Pescado",
+                isSelected = selectedFood == "pescado",
+                onClick = { onFoodSelected("pescado") }
+            )
+            FoodOption(
+                iconResource = R.drawable.pina,
+                label = "Pina",
+                isSelected = selectedFood == "pina",
+                onClick = { onFoodSelected("pina") }
+            )
+            FoodOption(
+                iconResource = R.drawable.pollo,
+                label = "Pollo",
+                isSelected = selectedFood == "pollo",
+                onClick = { onFoodSelected("pollo") }
+            )
             FoodOption(
                 iconResource = R.drawable.queso,
                 label = "Queso",
                 isSelected = selectedFood == "queso",
                 onClick = { onFoodSelected("queso") }
             )
-
+            FoodOption(
+                iconResource = R.drawable.res,
+                label = "Res",
+                isSelected = selectedFood == "res",
+                onClick = { onFoodSelected("res") }
+            )
+            FoodOption(
+                iconResource = R.drawable.tomate,
+                label = "Tomate",
+                isSelected = selectedFood == "tomate",
+                onClick = { onFoodSelected("tomate") }
+            )
+            FoodOption(
+                iconResource = R.drawable.tomate,
+                label = "Tomate",
+                isSelected = selectedFood == "tomate",
+                onClick = { onFoodSelected("tomate") }
+            )
+            FoodOption(
+                iconResource = R.drawable.tortilla,
+                label = "Tortilla",
+                isSelected = selectedFood == "tortilla",
+                onClick = { onFoodSelected("tortilla") }
+            )
+            FoodOption(
+                iconResource = R.drawable.uva,
+                label = "Uvas",
+                isSelected = selectedFood == "uva",
+                onClick = { onFoodSelected("uva") }
+            )
         }
     }
 }
