@@ -1,11 +1,11 @@
 {
   "images" : [
     {
+      "filename" : "lentejas.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "queso.png",
       "idiom" : "universal",
       "scale" : "2x"
     },

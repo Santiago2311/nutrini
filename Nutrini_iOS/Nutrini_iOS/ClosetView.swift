@@ -15,6 +15,11 @@ struct ClosetView: View {
         ("sillon_icon", "Sillon", "900"),
         ("planta_icon", "Plantas", "2000"),
         ("ventana_icon", "Ventana", "5000"),
+        ("libros_icon", "Libros", "1500"),
+        ("lampara_icon", "Lampara", "1000"),
+        ("sillon2_icon", "Sillon", "900"),
+        ("planta_icon", "Plantas", "2000"),
+        ("ventana_icon", "Ventana", "5000"),
         ("libros_icon", "Libros", "1500")
     ]
 

@@ -1,11 +1,11 @@
 {
   "images" : [
     {
+      "filename" : "aguacate.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "mascota_icon.png",
       "idiom" : "universal",
       "scale" : "2x"
     },

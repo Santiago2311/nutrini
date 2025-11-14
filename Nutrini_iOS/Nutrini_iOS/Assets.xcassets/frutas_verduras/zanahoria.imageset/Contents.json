@@ -1,11 +1,11 @@
 {
   "images" : [
     {
+      "filename" : "zanahoria.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "coliflor.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
