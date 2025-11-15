@@ -26,7 +26,6 @@ struct ExerciseView: View {
         }
         .onAppear {
             //Cuando aparece inica el juego
-            exerciseModel.startGame()
             OrientationManager.lockOrientation(.landscape) // 🔒 horizontal
         }
         .onDisappear {
@@ -35,10 +34,13 @@ struct ExerciseView: View {
             OrientationManager.lockOrientation(.portrait) // 🔓 restaurar vertical
         }
         .gesture (
-            //Detectar TAPS en toda la pantalla
             TapGesture()
                 .onEnded { _ in
-                    exerciseModel.jump()
+                    if exerciseModel.isGameOver {
+                        exerciseModel.startGame()
+                    } else {
+                        exerciseModel.jump()
+                    }
                 }
         )
         .ignoresSafeArea()
@@ -97,7 +99,7 @@ struct ExerciseView: View {
     }
     
     var nutriniView: some View {
-        Image("mascota_icono")
+        Image("mascota_icon")
             .resizable()
             .scaledToFit()
             .frame(width: exerciseModel.nutriniWidth,

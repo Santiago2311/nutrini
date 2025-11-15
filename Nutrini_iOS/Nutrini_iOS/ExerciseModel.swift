@@ -14,14 +14,14 @@ struct Platform: Identifiable {
     var xPos: CGFloat //Poricion horizontal en el mundo
     var yPos: CGFloat //Poricion vertical en el mundo
     let width: CGFloat = 50
-    let height: CGFloat = 20
+    let height: CGFloat = 60
 }
 
 class ExerciseModel: ObservableObject {
     // === POSICIÓN DEL PERSONAJE ===
     @Published var nutriniX: CGFloat = 150      // Posición en PANTALLA (fija)
     @Published var nutriniY: CGFloat = 350      // Posición vertical
-    @Published var nutriniWorldX: CGFloat = 150 // Posición en el MUNDO (se mueve)
+    @Published var nutriniWorldX: CGFloat = 50 // Posición en el MUNDO (se mueve)
         
     // === FÍSICA ===
     @Published var velocityY: CGFloat = 0       // Velocidad vertical (+ = cae, - = sube)
@@ -37,7 +37,7 @@ class ExerciseModel: ObservableObject {
     let gravity: CGFloat = 0.8           // Fuerza de gravedad (+ = cae más rápido)
     let jumpForce: CGFloat = -15         // Fuerza de salto (- = hacia arriba)
     let maxFallSpeed: CGFloat = 20       // Velocidad máxima de caída
-    let nutriniWidth: CGFloat = 60       // Ancho del personaje
+    let nutriniWidth: CGFloat = 150       // Ancho del personaje
     let nutriniHeight: CGFloat = 60      // Alto del personaje
     
     let speedIncreaseRate: CGFloat = 0.001  // Cuánto acelera por frame
