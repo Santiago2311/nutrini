@@ -4,6 +4,11 @@ struct FoodView: View {
     @State private var droppedItems: [DroppedFood] = []
     @State private var draggingItem: DraggingItem?
     
+    // Estados para el pop up
+    @State private var showPopup: Bool = false
+    @State private var popupMessage: String = ""
+    @State private var starCount: Int = 0
+    
     var body: some View {
         ZStack(alignment: .topLeading) {
             VStack(spacing: 0) {
@@ -27,17 +32,16 @@ struct FoodView: View {
                             FoodDraggableItem(imageName: "granos_cereales/tortilla", label: "Tortilla", droppedItems: $droppedItems, draggingItem: $draggingItem)
                             FoodDraggableItem(imageName: "grasas_saludables/aguacate", label: "Aguacate", droppedItems: $droppedItems, draggingItem: $draggingItem)
                             FoodDraggableItem(imageName: "grasas_saludables/almendra", label: "Almendra", droppedItems: $droppedItems, draggingItem: $draggingItem)
-                            FoodDraggableItem(imageName: "grasas_saludables/mani", label: "Mani", droppedItems: $droppedItems, draggingItem: $draggingItem)
-                            FoodDraggableItem(imageName: "frutas_verduras/brocoli", label: "Brocoli", droppedItems: $droppedItems, draggingItem: $draggingItem)
+                            FoodDraggableItem(imageName: "grasas_saludables/mani", label: "Maní", droppedItems: $droppedItems, draggingItem: $draggingItem)
+                            FoodDraggableItem(imageName: "frutas_verduras/brocoli", label: "Brócoli", droppedItems: $droppedItems, draggingItem: $draggingItem)
                             FoodDraggableItem(imageName: "frutas_verduras/pera", label: "Pera", droppedItems: $droppedItems, draggingItem: $draggingItem)
-                            FoodDraggableItem(imageName: "frutas_verduras/pina", label: "Pina", droppedItems: $droppedItems, draggingItem: $draggingItem)
+                            FoodDraggableItem(imageName: "frutas_verduras/pina", label: "Piña", droppedItems: $droppedItems, draggingItem: $draggingItem)
                             FoodDraggableItem(imageName: "frutas_verduras/tomate", label: "Tomate", droppedItems: $droppedItems, draggingItem: $draggingItem)
                             FoodDraggableItem(imageName: "frutas_verduras/zanahoria", label: "Zanahoria", droppedItems: $droppedItems, draggingItem: $draggingItem)
                             FoodDraggableItem(imageName: "leguminosas/frijol", label: "Frijol", droppedItems: $droppedItems, draggingItem: $draggingItem)
                             FoodDraggableItem(imageName: "leguminosas/garbanzos", label: "Garbanzo", droppedItems: $droppedItems, draggingItem: $draggingItem)
                             FoodDraggableItem(imageName: "leguminosas/haba", label: "Haba", droppedItems: $droppedItems, draggingItem: $draggingItem)
                             FoodDraggableItem(imageName: "leguminosas/lentejas", label: "Lenteja", droppedItems: $droppedItems, draggingItem: $draggingItem)
-                            
                         }
                         .padding(.horizontal)
                     }
@@ -81,7 +85,7 @@ struct FoodView: View {
 
                
                 Button(action: {
-                    
+                    evaluatePlate()
                 }) {
                     Text("Listo")
                         .fontWeight(.bold)
@@ -95,7 +99,7 @@ struct FoodView: View {
             
             // Botón flotante sobre todo
             Button(action: {
-                
+                // acción de regresar
             }) {
                 Image(systemName: "chevron.left")
                     .font(.title2)
@@ -111,7 +115,96 @@ struct FoodView: View {
                     .frame(width: 80, height: 80)
                     .position(dragging.position)
             }
+            
+            // POP UP de resultado
+            if showPopup {
+                ZStack {
+                    Color.black.opacity(0.4)
+                        .ignoresSafeArea()
+                    
+                    VStack(spacing: 16) {
+                        if starCount > 0 {
+                            Text("Resultado")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                            
+                            HStack(spacing: 8) {
+                                ForEach(0..<starCount, id: \.self) { _ in
+                                    Image(systemName: "star.fill")
+                                        .font(.title)
+                                        .foregroundColor(.yellow)
+                                }
+                            }
+                        } else {
+                            Text("¡Espera!")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                        }
+                        
+                        Text(popupMessage)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                            .font(.body)
+                        
+                        Button("Cerrar") {
+                            showPopup = false
+                        }
+                        .fontWeight(.bold)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 10)
+                        .background(Color(red: 80/255, green: 151/255, blue: 29/255))
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                    }
+                    .padding()
+                    .background(Color.white)
+                    .cornerRadius(20)
+                    .shadow(radius: 10)
+                    .padding(.horizontal, 40)
+                }
+            }
         }
+    }
+    
+    /// Evalúa cuántas carpetas diferentes hay en el plato y actualiza el pop up
+    private func evaluatePlate() {
+        if droppedItems.isEmpty {
+            // Caso: ningún alimento arrastrado
+            starCount = 0
+            popupMessage = "Primero tienes que escoger alimentos y arrastrarlos al plato."
+            showPopup = true
+            return
+        }
+        
+        // Obtener categorías distintas a partir del imageName
+        let categories: Set<String> = Set(
+            droppedItems.compactMap { item in
+                item.category
+            }
+        )
+        
+        let count = categories.count
+        var stars = 0
+        var message = ""
+        
+        switch count {
+        case 5:
+            stars = 3
+            message = "¡Excelente! Tienes alimentos de todas las categorías. Tu plato está súper balanceado."
+        case 3...4:
+            stars = 2
+            message = "¡Muy bien! Tienes variedad de alimentos. Intenta agregar de las categorías que faltan para un plato perfecto."
+        case 1...2:
+            stars = 1
+            message = "Buen inicio, pero aún puedes mejorar. Intenta incluir alimentos de más grupos para balancear tu plato."
+        default:
+            stars = 1
+            message = "Buen intento. Sigue practicando para lograr un plato más balanceado."
+        }
+        
+        starCount = stars
+        popupMessage = message
+        showPopup = true
     }
 }
 
@@ -119,6 +212,11 @@ struct DroppedFood: Identifiable {
     let id = UUID()
     let imageName: String
     let position: CGPoint
+    
+    // Carpeta del alimento (por ejemplo: "origen_animal", "leguminosas", etc.)
+    var category: String {
+        imageName.split(separator: "/").first.map(String.init) ?? ""
+    }
 }
 
 struct DraggingItem {
@@ -150,7 +248,7 @@ struct FoodDraggableItem: View {
                             let dropLocation = value.location
                             let screenHeight = UIScreen.main.bounds.height
                             
-                            if dropLocation.y > 240 && dropLocation.y < screenHeight - 100 {
+                            if dropLocation.y > 310 && dropLocation.y < screenHeight - 200 {
                                 droppedItems.append(DroppedFood(
                                     imageName: imageName,
                                     position: CGPoint(
