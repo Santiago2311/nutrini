@@ -1,0 +1,294 @@
+//
+//  ExerciseModel.swift
+//  Nutrini_iOS
+//
+//  Created by Alumno on 14/11/25.
+//
+
+import SwiftUI
+import Combine
+
+//Estrucutra de una plataforma
+struct Platform: Identifiable {
+    let id = UUID() //iD UNICO GENERADO POR SWIFT
+    var xPos: CGFloat //Poricion horizontal en el mundo
+    var yPos: CGFloat //Poricion vertical en el mundo
+    let width: CGFloat = 50
+    let height: CGFloat = 20
+}
+
+class GameViewModel: ObservableObject {
+    // === POSICIÓN DEL PERSONAJE ===
+    @Published var nutriniX: CGFloat = 150      // Posición en PANTALLA (fija)
+    @Published var nutriniY: CGFloat = 350      // Posición vertical
+    @Published var nutriniWorldX: CGFloat = 150 // Posición en el MUNDO (se mueve)
+        
+    // === FÍSICA ===
+    @Published var velocityY: CGFloat = 0       // Velocidad vertical (+ = cae, - = sube)
+    @Published var isGrounded: Bool = false     // ¿Está tocando el suelo?
+    @Published var gameSpeed: CGFloat = 3.0     // Velocidad de movimiento horizontal
+    
+    // === ESTADO DEL JUEGO ===
+    @Published var platforms: [Platform] = []   // Array de todas las plataformas
+    @Published var isGameOver: Bool = false     // ¿Perdió el jugador?
+    @Published var cameraOffsetX: CGFloat = 0   // Desplazamiento de la cámara
+    
+    // === CONSTANTES DEL JUEGO ===
+    let gravity: CGFloat = 0.8           // Fuerza de gravedad (+ = cae más rápido)
+    let jumpForce: CGFloat = -15         // Fuerza de salto (- = hacia arriba)
+    let maxFallSpeed: CGFloat = 20       // Velocidad máxima de caída
+    let nutriniWidth: CGFloat = 60       // Ancho del personaje
+    let nutriniHeight: CGFloat = 60      // Alto del personaje
+    
+    let speedIncreaseRate: CGFloat = 0.001  // Cuánto acelera por frame
+    let maxSpeed: CGFloat = 8.0             // Velocidad máxima
+    
+    let minPlatformY: CGFloat = 150         // Altura mínima (más arriba)
+    let maxPlatformY: CGFloat = 500         // Altura máxima (más abajo)
+    let minPlatformsPerGroup = 3            // Mínimo de plataformas por grupo
+    let maxPlatformsPerGroup = 10           // Máximo de plataformas por grupo
+    let minGroupGap: CGFloat = 100          // Espacio mínimo entre grupos
+    let maxGroupGap: CGFloat = 300          // Espacio máximo entre grupos
+    let platformSpacing: CGFloat = 52       // Separación dentro de un grupo
+    
+    var gameTimer: Timer?                   // Timer que actualiza el juego 60 veces/seg
+    var lastPlatformX: CGFloat = 0          // Última posición X donde generamos plataforma
+    
+    init() {
+        
+    }
+    
+    func startGame() {
+        //Generar plataformas iniciales
+        generateInitalPlatforms()
+        
+        //Crear un timer quue se ejecute a 60 FPS
+        gameTimer = Timer.scheduledTimer(withTimeInterval: 1/60, repeats: true) {
+            self.updateGame() //Llama a update cada frame
+        }
+    }
+    
+    func generateInitalPlatforms() {
+        //Genera una plataforma inicial justo debajo de Nutrini
+        let startingPlatform = Platform(
+            xPos: 50,
+            yPos: nutriniY + nutriniHeight
+        )
+        platforms.append(startingPlatform)
+        
+        //Para que la siguiente plataforma se genere en la posicion 150. la posicion inicial de la plataforma 0 es 50 + 50 (ancho) + 50 (espacio)
+        lastPlatformX = 150
+        
+        generatePlatforms()
+        
+    }
+    
+    func stopGame() {
+        //Detiene y desturye el timer
+        gameTimer?.invalidate()
+        gameTimer = nil
+    }
+    
+    
+    //funcionamiento real del juego
+    func updateGame() {
+        
+        //Si el juego se acaba, no hacer nada
+        guard !isGameOver else { return }
+        
+        
+        //Hacer que Nutrini caiga
+        applyGravity()
+        
+        //Nutrini se mueve a la velocidad establecida
+        nutriniWorldX += gameSpeed
+        
+        //Actualizar la camara para que siga a Nutrini
+        updateCamara()
+        
+        //Detectar si nutrini cae en una plataforma
+        checkCollisions()
+        
+        //Se generan nuevas plataformas
+        generatePlatforms()
+        
+        //Eliminar plataformas que esten fuera de la pantalla para optimizar
+        removePlatforms()
+        
+        //Nutrini acelera
+        increaseSpeed()
+        
+        //Verifica si se cayo al vacio
+        checkGameOver()
+        
+    }
+    
+    func applyGravity() {
+        //si no esta en el suelo, aplica la gravedad
+        if !isGrounded {
+            velocityY += gravity //Aumenta la velocidad de caida
+            
+            if velocityY > maxFallSpeed {
+                velocityY = maxFallSpeed
+            }
+        }
+        
+        nutriniY += velocityY
+    }
+    
+    func jump() {
+        //Solo puede saltar si esta en el suelo y el juego no ha terminado
+        if isGrounded && !isGameOver {
+            velocityY = jumpForce //Aplicar fuerza hacia arriba
+            isGrounded = false //Ya no esta en el suelo
+        }
+    }
+    
+    func updateCamera() {
+        // La cámara sigue a Nutrini
+            // cameraOffsetX = cuánto se ha movido Nutrini desde el inicio
+            
+            // Nutrini en pantalla está fijo en X = 150
+            // Pero en el mundo se mueve (nutriniWorldX aumenta constantemente)
+            // El offset es la diferencia
+        cameraOffsetX = nutriniWorldX - nutriniX
+    }
+    
+    //Revision de colisiones (con plataformas)
+    func checkCollisions() {
+        isGrounded = false
+        
+        for platform in platforms {
+            //Convertir la posicion de la plataforma a posicion en el mundo
+            let platformScreenX = platform.xPos - cameraOffsetX
+            
+            // OPTIMIZACIÓN: Solo verificar plataformas cercanas
+            // Si la plataforma está muy lejos, ignorarla
+            if abs(platformScreenX - nutriniX) < 150 {
+                
+                //Crear rectangulo de Nutrini
+                let nutriniRect = CGRect(
+                    x: nutriniX,
+                    y: nutriniY,
+                    width: nutriniWidth,
+                    height: nutriniHeight
+                )
+                
+                let platformRect = CGRect(
+                    x: platformScreenX,
+                    y: platform.yPos,
+                    width: platform.width,
+                    height: platform.height
+                )
+                
+                //Si los rectangulos se tocan
+                if nutriniRect.intersects(platformRect) {
+                    let nutriniFeet = nutriniY + nutriniHeight
+                    let nutriniBottomLastFrame = nutriniFeet - velocityY
+                    
+                    //La velocidad es positiva (viene de arriba) y los pies de nutrini estaban arriba de la plataforma antes de la caida
+                    if velocityY > 0 && nutriniBottomLastFrame <= platform.yPos {
+                        //Colocar a Nutrini exactamente arriba de la plataforma
+                        nutriniY = platform.yPos - nutriniHeight
+                        
+                        //Detener mov en y
+                        velocityY = 0
+                        
+                        //Marcarlo en el suelo
+                        isGrounded = true
+                        
+                        //Salir del loop (ya aterrizo)
+                        break
+                    }
+                    
+                }
+            }
+            
+        }
+    }
+    
+    func generatePlatforms() {
+        // Generar plataformas hasta 1000 píxeles adelante de Nutrini
+        let generateUntil = nutriniWorldX + 1000
+        
+        while lastPlatformX < generateUntil {
+            //Decidir cuántas plataformas tendrá este grupo (entre 3 y 10)
+            let groupSize = Int.random(in: minPlatformsPerGroup...maxPlatformsPerGroup)
+            
+            //Decidir altura del grupo
+            let groupY = CGFloat.random(in: minPlatformY...maxPlatformY)
+            
+            //Decidir espacio con el grupo anteripr
+            let gap = CGFloat.random(in: minGroupGap...maxGroupGap)
+            lastPlatformX += gap
+            
+            //Generar las plataformas
+            for i in 0..<groupSize {
+                let platform = Platform(
+                    xPos: lastPlatformX + (CGFloat(i) * platformSpacing),
+                    yPos: groupY
+                )
+                platforms.append(platform)
+            }
+            
+            //Actualizar la ultima pos en X
+            lastPlatformX += (CGFloat(groupSize) * platformSpacing)
+        }
+    }
+    
+    func removeOffscreenPlatforms() {
+        platforms.removeAll { platform in
+            platform.xPos < nutriniWorldX - 500
+            
+        }
+    }
+    
+    func increaseSpeed() {
+        //Solo aumentar si no ha llegado al maximo
+        if gameSpeed < maxSpeed {
+            gameSpeed += speedIncreaseRate //+0.001 por frame
+        }
+    }
+    
+    func checkGameOver() {
+        //Si nutrini cae debajo de la pantalla
+        if nutriniY > 700 {
+            gameOver()
+        }
+    }
+    
+    func gameOver() {
+        isGameOver = true //Activar la pantalla de Game Over
+        stopGame() //Detener timer
+    }
+    
+    func restartGame() {
+        // === RESETEAR TODAS LAS VARIABLES ===
+        
+        // Posición
+        nutriniY = 350
+        nutriniWorldX = 150
+            
+        // Física
+        velocityY = 0
+        isGrounded = false
+            
+        // Velocidad
+        gameSpeed = 3.0
+            
+        // Cámara
+        cameraOffsetX = 0
+            
+        // Plataformas
+        platforms.removeAll()
+        lastPlatformX = 0
+            
+        // Estado
+        isGameOver = false
+            
+        // === REINICIAR EL JUEGO ===
+        startGame()
+    }
+    
+}
+

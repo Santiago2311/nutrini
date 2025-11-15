@@ -8,7 +8,44 @@
 import SwiftUI
 
 struct ExerciseView: View {
+    //Crear una instancia del ViewModel
+    @StateObject var exerciseModel = ExerciseModel()
+    
     var body: some View {
+        ZStack {
+            backgroundView //Fondo
+            
+            platformsView //Plataformas
+            
+            nutriniView //Nutrini
+            
+            //No entiendo esto
+            if exerciseModel.isGameOver {
+                gameOverOverlay
+            }
+        }
+        .onAppear {
+            //Cuando aparece inica el juego
+            exerciseModel.startGame()
+            OrientationManager.lockOrientation(.landscape) // 🔒 horizontal
+        }
+        .onDisappear {
+            //Cuando desaparece se detiene el juego
+            exerciseModel.stopGame()
+            OrientationManager.lockOrientation(.portrait) // 🔓 restaurar vertical
+        }
+        .gesture (
+            //Detectar TAPS en toda la pantalla
+            TapGesture()
+                .onEnded { _ in
+                    exerciseModel.jump()
+                }
+        )
+        .ignoresSafeArea()
+    }
+    
+    //SUBVISTAS
+    var backgroundView: some View {
         ZStack {
             Color.blue
                 .ignoresSafeArea()
@@ -40,83 +77,55 @@ struct ExerciseView: View {
                     .position(x: 190, y: 300)
                 
             }
+        }
+        
+    }
+    
+    var platformsView: some View {
+        //Dibujar todas las plataformas
+        ForEach(exerciseModel.platforms) { platform in
+            Image("plataforma")
+                .resizable()
+                .frame(width: platform.width, height: platform.height)
+                .position(
+                    x: platform.xPos - gameViewModel.cameraOffsetX,
+                    y: platform.yPos)
+        }
+        
+    }
+    
+    var nutriniView: some View {
+        Image("mascota_icono")
+            .resizable()
+            .scaledToFit()
+            .frame(width: exerciseModel.nutriniWidth,
+                   height: exerciseModel.nutriniHeight)
+            .position(
+                x: exerciseModel.nutriniX,
+                y: exerciseModel.nutriniY)
+    }
+    
+    var gameOverOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.5)
+                .ignoreSafeArea()
             
-            HStack {
-                VStack(spacing: 0) {
-                    Image("plataforma")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 120)
-                        .position(x: 60, y: 390)
-                }
+            VStack(spacing: 20) {
+                Text("Perdiste")
+                    .font(.system(size: 60, weight: .bold))
+                    .foregroundColor(.white)
                 
-                HStack(spacing: 0) {
-                    Image("plataforma")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 50)
-                    Image("plataforma")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 50)
-                    Image("plataforma")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 50)
-                    //.position(x:290, y: 355)
-                    Image("plataforma")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 50)
-                    //.position(x:290, y: 355)
-                    //.position(x:290, y: 355)
+                Button(action: {
+                    exerciseModel.restartGame()
+                }) {
+                    Text("Reintertar")
+                        .font(.system(size: 30, weight: .semibold))
+                        .foregroundColor(.white)
+                        .padding(.vertical, 15)
+                        .background(Color.blue)
+                        .cornerRadius(15)
                 }
-                .position(x: 120, y: 260)
-                
-                HStack(spacing: 0) {
-                    Image("plataforma")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 50)
-                    Image("plataforma")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 50)
-                    Image("plataforma")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 50)
-                    //.position(x:290, y: 355)
-                    //.position(x:290, y: 355)
-                }
-                .position(x: 200, y: 180)
-                
-                HStack(spacing: 0) {
-                    Image("plataforma")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 50)
-                    Image("plataforma")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 50)
-                    //.position(x:290, y: 355)
-                }
-                .position(x: 300, y: 180)
-                
-                Image("Nutrini")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 150)
-                    .position(x: -650, y: 260)
             }
-            .ignoresSafeArea()
-        }
-        .onAppear {
-                OrientationManager.lockOrientation(.landscape) // 🔒 horizontal
-        }
-        .onDisappear {
-                OrientationManager.lockOrientation(.portrait) // 🔓 restaurar vertical
         }
     }
 }
