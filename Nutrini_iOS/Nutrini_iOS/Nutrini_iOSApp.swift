@@ -9,6 +9,8 @@ import SwiftUI
 
 @main
 struct Nutrini_iOSApp: App {
+
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
