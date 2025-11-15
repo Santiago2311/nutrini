@@ -181,8 +181,10 @@ struct FoodView: View {
                             HStack(spacing: 8) {
                                 ForEach(0..<starCount, id: \.self) { _ in
                                     Image(systemName: "star.fill")
-                                        .font(.title)
-                                        .foregroundColor(.yellow)
+                                        .font(.largeTitle)
+                                        .foregroundColor(
+                                            Color(uiColor: UIColor(red: 255/255, green: 198/255, blue: 0/255, alpha: 1.0))
+                                        )
                                 }
                             }
                         } else {
@@ -197,7 +199,7 @@ struct FoodView: View {
                             .font(.custom("CherryBombOne-Regular", size: 20))
                             .foregroundColor(.black)
                         
-                        // 🔥 Botones según estrellas
+                        // Botones según estrellas
                         if starCount == 3 {
                             HStack(spacing: 16) {
                                 Button("Inicio") {
@@ -221,15 +223,28 @@ struct FoodView: View {
                                 .cornerRadius(10)
                             }
                         } else {
-                            Button("Cerrar") {
-                                showPopup = false
+                            HStack(spacing: 16) {
+                                Button("Inicio") {
+                                    dismiss()   // vuelve a ContentView (pantalla anterior)
+                                }
+                                .font(.custom("CherryBombOne-Regular", size: 20))
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+                                .background(Color.gray.opacity(0.2))
+                                .foregroundColor(.black)
+                                .cornerRadius(10)
+                                
+                                Button("Continuar") {
+                                    showPopup = false
+                                }
+                                .font(.custom("CherryBombOne-Regular", size: 22))
+                                .padding(.horizontal, 24)
+                                .padding(.vertical, 10)
+                                .background(Color(red: 80/255, green: 151/255, blue: 29/255))
+                                .foregroundColor(.white)
+                                .cornerRadius(12)
                             }
-                            .font(.custom("CherryBombOne-Regular", size: 22))
-                            .padding(.horizontal, 24)
-                            .padding(.vertical, 10)
-                            .background(Color(red: 80/255, green: 151/255, blue: 29/255))
-                            .foregroundColor(.white)
-                            .cornerRadius(12)
+                            
                         }
                     }
                     .padding()
