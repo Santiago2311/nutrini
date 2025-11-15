@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ExerciseView: View {
-    //Crear una instancia del ViewModel
+    //Crear una instancia del ViewModel t 
     @StateObject var exerciseModel = ExerciseModel()
     
     var body: some View {
@@ -25,7 +25,8 @@ struct ExerciseView: View {
             }
         }
         .onAppear {
-            //Cuando aparece inica el juego
+            //Cuando aparece se generan las plataformas iniciales
+            exerciseModel.generateInitialPlatforms()
             OrientationManager.lockOrientation(.landscape) // 🔒 horizontal
         }
         .onDisappear {
@@ -36,9 +37,14 @@ struct ExerciseView: View {
         .gesture (
             TapGesture()
                 .onEnded { _ in
-                    if exerciseModel.isGameOver {
+                    if !exerciseModel.gameStarted {
+                        // Primer tap: Iniciar juego
                         exerciseModel.startGame()
+                    } else if exerciseModel.isGameOver {
+                        // Si perdió: Reiniciar
+                        exerciseModel.restartGame()
                     } else {
+                        // Taps siguientes: Saltar
                         exerciseModel.jump()
                     }
                 }
