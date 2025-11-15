@@ -60,7 +60,7 @@ struct MenuButton: View {
                 .scaledToFit()
                 .frame(height: 60)
             Text(label)
-                .font(.custom("CherryBombOne-Regular", size: 21))
+                .font(.custom("CherryBombOne-Regular", size: 20))
                 
                 .foregroundColor(.white)
         }
