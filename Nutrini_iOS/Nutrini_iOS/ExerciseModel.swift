@@ -13,43 +13,45 @@ struct Platform: Identifiable {
     let id = UUID() //iD UNICO GENERADO POR SWIFT
     var xPos: CGFloat //Poricion horizontal en el mundo
     var yPos: CGFloat //Poricion vertical en el mundo
-    let width: CGFloat = 50
-    let height: CGFloat = 60
+    let width: CGFloat = 70
+    let height: CGFloat = 70
 }
 
 class ExerciseModel: ObservableObject {
     // === POSICIÓN DEL PERSONAJE ===
     @Published var nutriniX: CGFloat = 150      // Posición en PANTALLA (fija)
-    @Published var nutriniY: CGFloat = 350      // Posición vertical
+    @Published var nutriniY: CGFloat = 250      // Posición vertical
     @Published var nutriniWorldX: CGFloat = 50 // Posición en el MUNDO (se mueve)
         
     // === FÍSICA ===
     @Published var velocityY: CGFloat = 0       // Velocidad vertical (+ = cae, - = sube)
-    @Published var isGrounded: Bool = false     // ¿Está tocando el suelo?
+    @Published var isGrounded: Bool = true     // ¿Está tocando el suelo?
     @Published var gameSpeed: CGFloat = 3.0     // Velocidad de movimiento horizontal
     
     // === ESTADO DEL JUEGO ===
     @Published var platforms: [Platform] = []   // Array de todas las plataformas
     @Published var isGameOver: Bool = false     // ¿Perdió el jugador?
     @Published var cameraOffsetX: CGFloat = 0   // Desplazamiento de la cámara
+    @Published var gameStarted: Bool = false    // Variable que define que el juego inicio
     
     // === CONSTANTES DEL JUEGO ===
     let gravity: CGFloat = 0.8           // Fuerza de gravedad (+ = cae más rápido)
     let jumpForce: CGFloat = -15         // Fuerza de salto (- = hacia arriba)
     let maxFallSpeed: CGFloat = 20       // Velocidad máxima de caída
     let nutriniWidth: CGFloat = 150       // Ancho del personaje
-    let nutriniHeight: CGFloat = 60      // Alto del personaje
+    let nutriniHeight: CGFloat = 250      // Alto del personaje
+    let floorY: CGFloat = 430             // Medida del suelo
     
     let speedIncreaseRate: CGFloat = 0.001  // Cuánto acelera por frame
     let maxSpeed: CGFloat = 8.0             // Velocidad máxima
     
     let minPlatformY: CGFloat = 150         // Altura mínima (más arriba)
-    let maxPlatformY: CGFloat = 500         // Altura máxima (más abajo)
+    let maxPlatformY: CGFloat = 360         // Altura máxima (más abajo)
     let minPlatformsPerGroup = 3            // Mínimo de plataformas por grupo
     let maxPlatformsPerGroup = 10           // Máximo de plataformas por grupo
     let minGroupGap: CGFloat = 100          // Espacio mínimo entre grupos
     let maxGroupGap: CGFloat = 300          // Espacio máximo entre grupos
-    let platformSpacing: CGFloat = 52       // Separación dentro de un grupo
+    let platformSpacing: CGFloat = 70       // Separación dentro de un grupo
     
     var gameTimer: Timer?                   // Timer que actualiza el juego 60 veces/seg
     var lastPlatformX: CGFloat = 0          // Última posición X donde generamos plataforma
@@ -60,24 +62,35 @@ class ExerciseModel: ObservableObject {
     
     func startGame() {
         //Generar plataformas iniciales
-        generateInitialPlatforms()
+        //generateInitialPlatforms()
+        
+        gameStarted = true
         
         //Crear un timer quue se ejecute a 60 FPS
         gameTimer = Timer.scheduledTimer(withTimeInterval: 1/60, repeats: true) { _ in
             self.updateGame() //Llama a update cada frame
         }
+        
     }
     
     func generateInitialPlatforms() {
         //Genera una plataforma inicial justo debajo de Nutrini
-        let startingPlatform = Platform(
-            xPos: 50,
-            yPos: nutriniY + nutriniHeight
-        )
-        platforms.append(startingPlatform)
+        //let initialY = nutriniY + nutriniHeight
+        let initialY = floorY - 70
         
-        //Para que la siguiente plataforma se genere en la posicion 150. la posicion inicial de la plataforma 0 es 50 + 50 (ancho) + 50 (espacio)
-        lastPlatformX = 150
+        for i in 0..<5 {  // ← Crear 5 plataformas
+            let platform = Platform(
+                xPos: 70 + (CGFloat(i) * 70),  // 50 es el ancho de cada plataforma
+                yPos: initialY
+            )
+            platforms.append(platform)
+        }
+        
+        //nutriniY = initialY - 60 - (nutriniHeight/2)
+        nutriniY = initialY - (nutriniHeight/2) + 4
+        
+        // Actualizar última posición (5 plataformas * 50 de ancho = 250)
+        lastPlatformX = 70 + (5 * 70)  // = 300
         
         generatePlatforms()
         
@@ -156,7 +169,8 @@ class ExerciseModel: ObservableObject {
     
     //Revision de colisiones (con plataformas)
     func checkCollisions() {
-        isGrounded = false
+        //isGrounded = false
+        print("Este es un mensaje de prueba")
         
         for platform in platforms {
             //Convertir la posicion de la plataforma a posicion en el mundo
@@ -266,12 +280,12 @@ class ExerciseModel: ObservableObject {
         // === RESETEAR TODAS LAS VARIABLES ===
         
         // Posición
-        nutriniY = 350
-        nutriniWorldX = 150
+        nutriniY = 250
+        nutriniWorldX = 50
             
         // Física
         velocityY = 0
-        isGrounded = false
+        isGrounded = true
             
         // Velocidad
         gameSpeed = 3.0
@@ -285,9 +299,10 @@ class ExerciseModel: ObservableObject {
             
         // Estado
         isGameOver = false
+        gameStarted = false
             
         // === REINICIAR EL JUEGO ===
-        startGame()
+        generateInitialPlatforms()
     }
     
 }
