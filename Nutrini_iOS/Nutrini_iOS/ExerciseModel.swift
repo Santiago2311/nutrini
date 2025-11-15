@@ -17,7 +17,7 @@ struct Platform: Identifiable {
     let height: CGFloat = 20
 }
 
-class GameViewModel: ObservableObject {
+class ExerciseModel: ObservableObject {
     // === POSICIÓN DEL PERSONAJE ===
     @Published var nutriniX: CGFloat = 150      // Posición en PANTALLA (fija)
     @Published var nutriniY: CGFloat = 350      // Posición vertical
@@ -60,15 +60,15 @@ class GameViewModel: ObservableObject {
     
     func startGame() {
         //Generar plataformas iniciales
-        generateInitalPlatforms()
+        generateInitialPlatforms()
         
         //Crear un timer quue se ejecute a 60 FPS
-        gameTimer = Timer.scheduledTimer(withTimeInterval: 1/60, repeats: true) {
+        gameTimer = Timer.scheduledTimer(withTimeInterval: 1/60, repeats: true) { _ in
             self.updateGame() //Llama a update cada frame
         }
     }
     
-    func generateInitalPlatforms() {
+    func generateInitialPlatforms() {
         //Genera una plataforma inicial justo debajo de Nutrini
         let startingPlatform = Platform(
             xPos: 50,
@@ -104,7 +104,7 @@ class GameViewModel: ObservableObject {
         nutriniWorldX += gameSpeed
         
         //Actualizar la camara para que siga a Nutrini
-        updateCamara()
+        updateCamera()
         
         //Detectar si nutrini cae en una plataforma
         checkCollisions()
@@ -236,7 +236,7 @@ class GameViewModel: ObservableObject {
         }
     }
     
-    func removeOffscreenPlatforms() {
+    func removePlatforms() {
         platforms.removeAll { platform in
             platform.xPos < nutriniWorldX - 500
             

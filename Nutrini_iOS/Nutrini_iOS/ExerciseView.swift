@@ -83,13 +83,15 @@ struct ExerciseView: View {
     
     var platformsView: some View {
         //Dibujar todas las plataformas
-        ForEach(exerciseModel.platforms) { platform in
-            Image("plataforma")
-                .resizable()
-                .frame(width: platform.width, height: platform.height)
-                .position(
-                    x: platform.xPos - gameViewModel.cameraOffsetX,
-                    y: platform.yPos)
+        ZStack {
+            ForEach(exerciseModel.platforms) { platform in
+                Image("plataforma")
+                    .resizable()
+                    .frame(width: platform.width, height: platform.height)
+                    .position(
+                        x: platform.xPos - exerciseModel.cameraOffsetX,
+                        y: platform.yPos)
+            }
         }
         
     }
@@ -108,7 +110,7 @@ struct ExerciseView: View {
     var gameOverOverlay: some View {
         ZStack {
             Color.black.opacity(0.5)
-                .ignoreSafeArea()
+                .ignoresSafeArea()
             
             VStack(spacing: 20) {
                 Text("Perdiste")
