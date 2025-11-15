@@ -27,6 +27,8 @@ class ExerciseModel: ObservableObject {
     @Published var velocityY: CGFloat = 0       // Velocidad vertical (+ = cae, - = sube)
     @Published var isGrounded: Bool = true     // ¿Está tocando el suelo?
     @Published var gameSpeed: CGFloat = 3.0     // Velocidad de movimiento horizontal
+    @Published var jumpSpeed: CGFloat = 6.0          //Aumento de velocidad en el juego
+    @Published var nutriSpeed: CGFloat = 3.0          //Aumento de velocidad en el juego
     
     // === ESTADO DEL JUEGO ===
     @Published var platforms: [Platform] = []   // Array de todas las plataformas
@@ -35,27 +37,28 @@ class ExerciseModel: ObservableObject {
     @Published var gameStarted: Bool = false    // Variable que define que el juego inicio
     
     // === CONSTANTES DEL JUEGO ===
-    let gravity: CGFloat = 0.8           // Fuerza de gravedad (+ = cae más rápido)
-    let jumpForce: CGFloat = -18         // Fuerza de salto (- = hacia arriba)
+    let gravity: CGFloat = 0.4           // Fuerza de gravedad (+ = cae más rápido)
+    let jumpForce: CGFloat = -12         // Fuerza de salto (- = hacia arriba)
     let maxFallSpeed: CGFloat = 20       // Velocidad máxima de caída
     let nutriniWidth: CGFloat = 150       // Ancho del personaje
     let nutriniHeight: CGFloat = 250      // Alto del personaje
     let floorY: CGFloat = 430             // Medida del suelo
-    var jumpSpeed: CGFloat = 0          //Aumento de velocidad en el juego
     
     let speedIncreaseRate: CGFloat = 0.001  // Cuánto acelera por frame
     let maxSpeed: CGFloat = 8.0             // Velocidad máxima
     
-    let minPlatformY: CGFloat = 120         // Altura mínima (más arriba)
+    let minPlatformY: CGFloat = 100         // Altura mínima (más arriba)
     let maxPlatformY: CGFloat = 360         // Altura máxima (más abajo)
     let minPlatformsPerGroup = 3            // Mínimo de plataformas por grupo
     let maxPlatformsPerGroup = 7           // Máximo de plataformas por grupo
     let minGroupGap: CGFloat = 100          // Espacio mínimo entre grupos
-    let maxGroupGap: CGFloat = 250          // Espacio máximo entre grupos
+    let maxGroupGap: CGFloat = 230          // Espacio máximo entre grupos
+    let maxYGap: CGFloat = 350          // Espacio máximo entre grupos
     let platformSpacing: CGFloat = 70       // Separación dentro de un grupo
     
     var gameTimer: Timer?                   // Timer que actualiza el juego 60 veces/seg
     var lastPlatformX: CGFloat = 0          // Última posición X donde generamos plataforma
+    var lastPlatformY: CGFloat = 0          // Última posición y donde generamos plataforma
     
     init() {
         
@@ -92,6 +95,7 @@ class ExerciseModel: ObservableObject {
         
         // Actualizar última posición (5 plataformas * 50 de ancho = 250)
         lastPlatformX = 50 + (5 * 70)  // = 300
+        lastPlatformY = initialY          // Última posición X donde generamos plataforma
         
         generatePlatforms()
         
@@ -115,8 +119,8 @@ class ExerciseModel: ObservableObject {
         applyGravity()
         
         //Nutrini se mueve a la velocidad establecida
-        gameSpeed += jumpSpeed
-        nutriniWorldX += gameSpeed
+        //nutriSpeed = gameSpeed
+        nutriniWorldX += nutriSpeed
         
         //Actualizar la camara para que siga a Nutrini
         updateCamera()
@@ -156,7 +160,7 @@ class ExerciseModel: ObservableObject {
         if isGrounded && !isGameOver {
             velocityY = jumpForce //Aplicar fuerza hacia arriba
             isGrounded = false //Ya no esta en el suelo
-            jumpSpeed = 0.07
+            nutriSpeed = jumpSpeed
         }
     }
     
@@ -182,7 +186,7 @@ class ExerciseModel: ObservableObject {
             
             // OPTIMIZACIÓN: Solo verificar plataformas cercanas
             // Si la plataforma está muy lejos, ignorarla
-            if abs(platformScreenX - nutriniX) < 80{
+            if abs(platformScreenX - nutriniX) < 60{
                 platformUnder = true
                 //Crear rectangulo de Nutrini
                 let nutriniRect = CGRect(
@@ -211,19 +215,21 @@ class ExerciseModel: ObservableObject {
                     
                     //La velocidad es positiva (viene de arriba) y los pies de nutrini estaban arriba de la plataforma antes de la caida
                     if velocityY > 0 && nutriniBottomLastFrame <= platform.yPos {
+                        if platform.yPos - (nutriniHeight/2) + 4 - nutriniFeet < 5 {
+                            nutriniY = platform.yPos - (nutriniHeight/2) + 4
+                            //Detener mov en y
+                            velocityY = 0
+                            nutriSpeed = gameSpeed
+                                
+                            //Marcarlo en el suelo
+                            isGrounded = true
+                                
+                            //Salir del loop (ya aterrizo)
+                            break
+                        }
                         //Colocar a Nutrini exactamente arriba de la plataforma
                         //nutriniY = platform.yPos - nutriniHeight
-                        nutriniY = platform.yPos - (nutriniHeight/2) + 4
-                            
-                        //Detener mov en y
-                        velocityY = 0
-                        jumpSpeed = 0.0
-                            
-                        //Marcarlo en el suelo
-                        isGrounded = true
-                            
-                        //Salir del loop (ya aterrizo)
-                        break
+                        //nutriniY = platform.yPos - (nutriniHeight/2) + 4
                     }
                 }
             }
@@ -243,11 +249,17 @@ class ExerciseModel: ObservableObject {
             let groupSize = Int.random(in: minPlatformsPerGroup...maxPlatformsPerGroup)
             
             //Decidir altura del grupo
-            let groupY = CGFloat.random(in: minPlatformY...maxPlatformY)
+            var groupY = CGFloat.random(in: minPlatformY...maxPlatformY)
             
             //Decidir espacio con el grupo anteripr
             let gap = CGFloat.random(in: minGroupGap...maxGroupGap)
             lastPlatformX += gap
+            
+            var yDistance = lastPlatformY - groupY
+            while yDistance > 60 {
+                groupY = CGFloat.random(in: minPlatformY...maxPlatformY)
+                yDistance = lastPlatformY - groupY
+            }
             
             //Generar las plataformas
             for i in 0..<groupSize {
@@ -274,6 +286,7 @@ class ExerciseModel: ObservableObject {
         //Solo aumentar si no ha llegado al maximo
         if gameSpeed < maxSpeed {
             gameSpeed += speedIncreaseRate //+0.001 por frame
+            nutriSpeed += speedIncreaseRate //+0.001 por frame
         }
     }
     
@@ -302,7 +315,7 @@ class ExerciseModel: ObservableObject {
             
         // Velocidad
         gameSpeed = 3.0
-        jumpSpeed = 0.0
+        jumpSpeed = 6.0
             
         // Cámara
         cameraOffsetX = 0
