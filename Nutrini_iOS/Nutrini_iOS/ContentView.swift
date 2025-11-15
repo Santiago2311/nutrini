@@ -1,50 +1,67 @@
-//
-//  ContentView.swift
-//  Nutrini_iOS
-//
-//  Created by Administrador on 2025-09-21.
-//
 
 import SwiftUI
 
 struct ContentView: View {
     var body: some View {
         NavigationStack {
-            VStack(spacing: 60) {
+            ZStack {
                 
-                ProgressView(value: 0.5)
-                    .progressViewStyle(LinearProgressViewStyle(tint: Color(red: 80/255, green: 151/255, blue: 29/255)))
-                    .frame(height: 25)
-                    .padding(.top, 30)
-                    .padding(.horizontal)
+                // Fondo
+                Color(red: 45/255, green: 114/255, blue: 218/255)
+                    .ignoresSafeArea()
+                
+                VStack {
+                    
+                    
 
-                Image("mascota_icon")
-                
-                HStack {
+                    Spacer()
+                    
+                    // Mascota en el centro
+                    Image("mascota_icon")
+                    
+                    Spacer()
+                    
+                    // HStack inferior SIN closet
                     HStack(spacing: 10) {
                         NavigationLink(destination: FoodView()) {
                             MenuButton(iconName: "comida_icon", label: "Comida")
                         }
-                            
+                        
                         NavigationLink(destination: WaterView()) {
                             MenuButton(iconName: "agua_icon", label: "Agua")
                         }
-                            
+                        
                         NavigationLink(destination: ExerciseView()) {
                             MenuButton(iconName: "ejercicio_icon", label: "Ejercicio")
                         }
-                            
-                        NavigationLink(destination: ClosetView()) {
-                            MenuButton(iconName: "compras_icon", label: "Closet")
-                        }
                     }
                     .padding(.horizontal)
-                    .padding(.bottom, 20)
+                    .padding(.bottom, 15)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                
+                // Botón de closet en esquina superior derecha
+                VStack {
+                    HStack {
+                        Spacer()
+                        NavigationLink(destination: ClosetView()) {
+                            VStack {
+                                Image("compras_icon")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(height: 70)
+                                
+                                Text("Tienda")
+                                    .font(.custom("CherryBombOne-Regular", size: 24))
+                                    .foregroundColor(.white)
+                            }
+                            .padding(.trailing, 15)
+                            .padding(.top, 5)
+                        }
+                    }
+                    Spacer()
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color(red: 45/255, green: 114/255, blue: 218/255))
-            .ignoresSafeArea()
         }
     }
 }
@@ -54,20 +71,40 @@ struct MenuButton: View {
     let label: String
 
     var body: some View {
-        VStack {
+        VStack(spacing: 7) {
             Image(iconName)
                 .resizable()
                 .scaledToFit()
-                .frame(height: 60)
+                .frame(height: 80)
+            
             Text(label)
-                .font(.custom("CherryBombOne-Regular", size: 20))
-                
+                .font(.custom("CherryBombOne-Regular", size: 26))
                 .foregroundColor(.white)
+            
+            
+            ZStack {
+                // Contorno
+                RoundedRectangle(cornerRadius: 4)
+                    .stroke(Color.black, lineWidth: 2)
+                    .frame(height: 26)
+                
+                
+                ProgressView(value: 0.5)
+                    .progressViewStyle(
+                        LinearProgressViewStyle(
+                            tint: Color(red: 80/255, green: 151/255, blue: 29/255)
+                        )
+                    )
+                    .scaleEffect(x: 1, y: 6, anchor: .center) // barra gruesa
+                    .padding(.horizontal, 2)
+            }
+                
+                .padding(.horizontal, 10)
+            
         }
         .frame(maxWidth: .infinity)
     }
 }
-
 
 #Preview {
     ContentView()
