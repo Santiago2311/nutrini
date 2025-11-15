@@ -20,8 +20,8 @@ struct Platform: Identifiable {
 class ExerciseModel: ObservableObject {
     // === POSICIÓN DEL PERSONAJE ===
     @Published var nutriniX: CGFloat = 150      // Posición en PANTALLA (fija)
-    @Published var nutriniY: CGFloat = 250      // Posición vertical
-    @Published var nutriniWorldX: CGFloat = 50 // Posición en el MUNDO (se mueve)
+    @Published var nutriniY: CGFloat = 180      // Posición vertical
+    @Published var nutriniWorldX: CGFloat = 150 // Posición en el MUNDO (se mueve)
         
     // === FÍSICA ===
     @Published var velocityY: CGFloat = 0       // Velocidad vertical (+ = cae, - = sube)
@@ -36,7 +36,7 @@ class ExerciseModel: ObservableObject {
     
     // === CONSTANTES DEL JUEGO ===
     let gravity: CGFloat = 0.8           // Fuerza de gravedad (+ = cae más rápido)
-    let jumpForce: CGFloat = -15         // Fuerza de salto (- = hacia arriba)
+    let jumpForce: CGFloat = -18         // Fuerza de salto (- = hacia arriba)
     let maxFallSpeed: CGFloat = 20       // Velocidad máxima de caída
     let nutriniWidth: CGFloat = 150       // Ancho del personaje
     let nutriniHeight: CGFloat = 250      // Alto del personaje
@@ -50,7 +50,7 @@ class ExerciseModel: ObservableObject {
     let minPlatformsPerGroup = 3            // Mínimo de plataformas por grupo
     let maxPlatformsPerGroup = 10           // Máximo de plataformas por grupo
     let minGroupGap: CGFloat = 100          // Espacio mínimo entre grupos
-    let maxGroupGap: CGFloat = 300          // Espacio máximo entre grupos
+    let maxGroupGap: CGFloat = 250          // Espacio máximo entre grupos
     let platformSpacing: CGFloat = 70       // Separación dentro de un grupo
     
     var gameTimer: Timer?                   // Timer que actualiza el juego 60 veces/seg
@@ -76,11 +76,11 @@ class ExerciseModel: ObservableObject {
     func generateInitialPlatforms() {
         //Genera una plataforma inicial justo debajo de Nutrini
         //let initialY = nutriniY + nutriniHeight
-        let initialY = floorY - 70
+        let initialY = floorY - 70 //360
         
         for i in 0..<5 {  // ← Crear 5 plataformas
             let platform = Platform(
-                xPos: 70 + (CGFloat(i) * 70),  // 50 es el ancho de cada plataforma
+                xPos: 50 + (CGFloat(i) * 70),  // 50 es el ancho de cada plataforma
                 yPos: initialY
             )
             platforms.append(platform)
@@ -90,7 +90,7 @@ class ExerciseModel: ObservableObject {
         nutriniY = initialY - (nutriniHeight/2) + 4
         
         // Actualizar última posición (5 plataformas * 50 de ancho = 250)
-        lastPlatformX = 70 + (5 * 70)  // = 300
+        lastPlatformX = 50 + (5 * 70)  // = 300
         
         generatePlatforms()
         
@@ -172,49 +172,56 @@ class ExerciseModel: ObservableObject {
         //isGrounded = false
         print("Este es un mensaje de prueba")
         
-        for platform in platforms {
-            //Convertir la posicion de la plataforma a posicion en el mundo
-            let platformScreenX = platform.xPos - cameraOffsetX
-            
-            // OPTIMIZACIÓN: Solo verificar plataformas cercanas
-            // Si la plataforma está muy lejos, ignorarla
-            if abs(platformScreenX - nutriniX) < 150 {
+        if !isGrounded {
+            for platform in platforms {
+                //Convertir la posicion de la plataforma en el mundo a posicion en pantalla
+                let platformScreenX = platform.xPos - cameraOffsetX
                 
-                //Crear rectangulo de Nutrini
-                let nutriniRect = CGRect(
-                    x: nutriniX,
-                    y: nutriniY,
-                    width: nutriniWidth,
-                    height: nutriniHeight
-                )
-                
-                let platformRect = CGRect(
-                    x: platformScreenX,
-                    y: platform.yPos,
-                    width: platform.width,
-                    height: platform.height
-                )
-                
-                //Si los rectangulos se tocan
-                if nutriniRect.intersects(platformRect) {
-                    let nutriniFeet = nutriniY + nutriniHeight
-                    let nutriniBottomLastFrame = nutriniFeet - velocityY
+                // OPTIMIZACIÓN: Solo verificar plataformas cercanas
+                // Si la plataforma está muy lejos, ignorarla
+                if abs(platformScreenX - nutriniX) < 150{
                     
-                    //La velocidad es positiva (viene de arriba) y los pies de nutrini estaban arriba de la plataforma antes de la caida
-                    if velocityY > 0 && nutriniBottomLastFrame <= platform.yPos {
-                        //Colocar a Nutrini exactamente arriba de la plataforma
-                        nutriniY = platform.yPos - nutriniHeight
-                        
-                        //Detener mov en y
-                        velocityY = 0
-                        
-                        //Marcarlo en el suelo
+                    //Crear rectangulo de Nutrini
+                    let nutriniRect = CGRect(
+                        x: nutriniX,
+                        y: nutriniY,
+                        width: nutriniWidth,
+                        height: nutriniHeight
+                    )
+                    
+                    let platformRect = CGRect(
+                        x: platformScreenX,
+                        y: platform.yPos,
+                        width: platform.width,
+                        height: platform.height
+                    )
+                    /*if ((nutriniX - platformScreenX) < platform.width) && (platform.yPos - nutriniY) < 121  {
                         isGrounded = true
-                        
-                        //Salir del loop (ya aterrizo)
                         break
-                    }
+                    }*/
                     
+                    //Si los rectangulos se tocan
+                    if nutriniRect.intersects(platformRect) {
+                        let nutriniFeet = nutriniY + (nutriniHeight / 2)
+                        //let nutriniFeet = nutriniY + nutriniHeight
+                        let nutriniBottomLastFrame = nutriniFeet - velocityY
+                        
+                        //La velocidad es positiva (viene de arriba) y los pies de nutrini estaban arriba de la plataforma antes de la caida
+                        if velocityY > 0 && nutriniBottomLastFrame <= platform.yPos {
+                            //Colocar a Nutrini exactamente arriba de la plataforma
+                            //nutriniY = platform.yPos - nutriniHeight
+                            nutriniY = platform.yPos - (nutriniHeight/2) + 4
+                            
+                            //Detener mov en y
+                            velocityY = 0
+                            
+                            //Marcarlo en el suelo
+                            isGrounded = true
+                            
+                            //Salir del loop (ya aterrizo)
+                            break
+                        }
+                    }
                 }
             }
             
@@ -266,7 +273,7 @@ class ExerciseModel: ObservableObject {
     
     func checkGameOver() {
         //Si nutrini cae debajo de la pantalla
-        if nutriniY > 700 {
+        if nutriniY > 500 {
             gameOver()
         }
     }
@@ -281,7 +288,7 @@ class ExerciseModel: ObservableObject {
         
         // Posición
         nutriniY = 250
-        nutriniWorldX = 50
+        nutriniWorldX = 150
             
         // Física
         velocityY = 0
