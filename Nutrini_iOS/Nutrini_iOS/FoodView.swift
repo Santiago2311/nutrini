@@ -88,7 +88,7 @@ struct FoodView: View {
                     evaluatePlate()
                 }) {
                     Text("Listo")
-                        .fontWeight(.bold)
+                        .font(.custom("CherryBombOne-Regular", size: 28))
                         .frame(minWidth: 120, minHeight: 44)
                 }
                 .buttonStyle(.borderedProminent)
@@ -263,7 +263,7 @@ struct FoodDraggableItem: View {
                 )
 
             Text(label)
-                .font(.custom("cherry_regular", size: 14))
+                .font(.custom("CherryBombOne-Regular", size: 24))
                 .foregroundColor(.white)
         }
     }
