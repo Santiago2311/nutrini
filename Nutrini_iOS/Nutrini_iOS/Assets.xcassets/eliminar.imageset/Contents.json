@@ -1,11 +1,11 @@
 {
   "images" : [
     {
-      "filename" : "frijol_pinto.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
+      "filename" : "eliminar.png",
       "idiom" : "universal",
       "scale" : "2x"
     },

@@ -16,11 +16,13 @@ struct ClosetView: View {
         ("planta_icon", "Plantas", "2000"),
         ("ventana_icon", "Ventana", "5000"),
         ("libros_icon", "Libros", "1500"),
-        ("lampara_icon", "Lampara", "1000"),
-        ("sillon2_icon", "Sillon", "900"),
-        ("planta_icon", "Plantas", "2000"),
-        ("ventana_icon", "Ventana", "5000"),
-        ("libros_icon", "Libros", "1500")
+        ("cuadro_icon", "Cuadro", "1000"),
+        ("sillon2_icon", "Sillon azul", "900"),
+        ("maceta_icon", "Maceta", "2000"),
+        ("mesa_icon", "Mesa", "5000"),
+        ("poster_icon", "Poster", "1500"),
+        ("repisa_icon", "Repisa", "5000"),
+        ("repisa2_icon", "Repisa 2", "1500")
     ]
 
     let columns = [
@@ -56,7 +58,7 @@ struct ClosetView: View {
                 .padding(.top, 10)
 
                 
-                Text("Closet")
+                Text("Tienda")
                     .font(.title)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
