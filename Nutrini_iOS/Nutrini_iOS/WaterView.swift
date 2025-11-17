@@ -35,7 +35,7 @@ struct WaterView: View {
                         .offset(x: -20, y: -300)
 
                     VStack {
-                            Image("mascota")
+                            Image("mascota_icon")
                                 .resizable()
                                 .frame(width: 100, height: 100)
                                 .offset(y: -70)

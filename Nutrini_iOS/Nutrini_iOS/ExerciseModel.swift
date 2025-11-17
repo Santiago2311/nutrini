@@ -65,9 +65,6 @@ class ExerciseModel: ObservableObject {
     }
     
     func startGame() {
-        //Generar plataformas iniciales
-        //generateInitialPlatforms()
-        
         gameStarted = true
         
         //Crear un timer quue se ejecute a 60 FPS
