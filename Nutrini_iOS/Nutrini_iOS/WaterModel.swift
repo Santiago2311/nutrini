@@ -45,6 +45,7 @@ class WaterModel: ObservableObject {
     var maxNumObjects = 1 //Numero de objetos que pueden exister la vez
     var vasosTomados = 0
     var gameTimer: Timer?                   // Timer que actualiza el juego 60 veces/seg
+    var frameCount = 0 //Para contar los segunos
     
     init() {
         
@@ -134,47 +135,42 @@ class WaterModel: ObservableObject {
     
     func generateObjects() {
         var currVasos = objects.count
-        while currVasos < maxNumObjects {
+        if currVasos < maxNumObjects {
             //Generar espacio en x
-            let xPos = CGFloat.random(in: 0...200)
+            let xPos = CGFloat.random(in: 30...360)
             
             //Decidir si va a ser vaso o refresco
             let objectTypeProb = CGFloat.random(in: 0...10)
-            var objectType = true
-            if (objectTypeProb < 7) {
-                objectType = false
-            } else {
-                objectType = true
-            }
+            let objectType = objectTypeProb >= 7 // 30% refrescos, 70% vasos
             
             //Generar las plataformas
-            for i in 0..<maxNumObjects {
-                let object = Object(
-                    refresco: objectType,
-                    xPos: xPos,
-                    yPos: 100,
-                    velocity: gameSpeed
-                    
-                    
-                )
-                objects.append(object)
-                currVasos += 1
-            }
-            
+            let object = Object(
+                refresco: objectType,
+                xPos: xPos,
+                yPos: -50, // Comenzar arriba de la pantalla
+                velocity: gameSpeed
+            )
+            objects.append(object)
+            currVasos += 1
         }
     }
     
     func removeObjects() {
         objects.removeAll { object in
-            object.yPos < 0
+            object.yPos > 800 || !object.visible
             
         }
     }
     
     func increaseSpeed() {
+        frameCount += 1
         //Solo aumentar si no ha llegado al maximo
         if gameSpeed < maxSpeed {
             gameSpeed += speedIncreaseRate //+0.001 por frame
+        }
+        if frameCount >= 220 && maxNumObjects < 7 {
+            maxNumObjects += 1
+            frameCount = 0
         }
     }
     
@@ -191,9 +187,12 @@ class WaterModel: ObservableObject {
     }
     
     func restartGame() {
+        startGame()
         // === RESETEAR TODAS LAS VARIABLES ===
         vasosTomados = 0
         lives = 3
+        maxNumObjects = 1
+        frameCount = 0
         
         // Velocidad
         gameSpeed = 3.0
