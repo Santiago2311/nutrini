@@ -15,13 +15,18 @@ struct WaterView: View {
         ZStack {
             backgroundView //Fondo
             
+            nutriniView //Nutrini
+            
             objectsView //Latas y vasos
             
-            nutriniView //Nutrini
+            textView //Vidas y vasos tomados
             
             if waterModel.isGameOver {
                 gameOverOverlay
             }
+        }
+        .onAppear {
+            waterModel.startGame()
         }
         .onDisappear {
             //Cuando desaparece se detiene el juego
@@ -36,6 +41,30 @@ struct WaterView: View {
         .ignoresSafeArea()
     }
     
+    var textView: some View {
+        HStack {
+            Spacer() // Empuja todo hacia la derecha
+            
+            VStack() {
+                Text("Vidas: \(waterModel.lives)")
+                    .font(.custom("CherryBombOne-Regular", size: 32))
+                    .foregroundColor(.white)
+                    .padding(.top, 30)
+                    .padding(.bottom, 0)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+
+                Text("Vasos tomados: \(waterModel.vasosTomados)")
+                    .font(.custom("CherryBombOne-Regular", size: 32))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                
+                Spacer()
+            }
+            .padding(.trailing, 30)
+        }
+        .padding()
+    }
+    
     var backgroundView: some View {
         Image("fondoWater")
             .resizable()
@@ -47,25 +76,25 @@ struct WaterView: View {
     var objectsView: some View {
         ZStack {
             ForEach(waterModel.objects) { object in
-                if object.refresco == true {
-                    Image("lata_icon")
-                        .resizable()
-                        .frame(width: object.width, height: object.height)
-                        .position(
-                            x: object.xPos,
-                            y: object.xPos)
-                }
-                else {
-                    Image("vaso_icon")
-                        .resizable()
-                        .frame(width: object.width, height: object.height)
-                        .position(
-                            x: object.xPos,
-                            y: object.xPos)
+                if (object.visible) {
+                    if object.refresco == true {
+                        Image("lata_icon")
+                            .resizable()
+                            .frame(width: object.width, height: object.height)
+                            .position(
+                                x: object.xPos,
+                                y: object.yPos)
+                    }
+                    else {
+                        Image("vaso_icon")
+                            .resizable()
+                            .frame(width: object.width, height: object.height)
+                            .position(
+                                x: object.xPos,
+                                y: object.yPos)
+                    }
                 }
             }
-            
-            
             
         }
     }

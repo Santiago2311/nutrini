@@ -25,11 +25,11 @@ class WaterModel: ObservableObject {
     @Published var nutriniY: CGFloat = 620      // Posición vertical
     
     // === FÍSICA ===
-    @Published var gameSpeed: CGFloat = 3.0     // Velocidad de movimiento horizontal
+    @Published var gameSpeed: CGFloat = 1.0     // Velocidad de movimiento horizontal
     
     // === ESTADO DEL JUEGO ===
     @Published var objects: [Object] = []   // Array de todos los objetos
-    @Published var lives: CGFloat = 3.0
+    @Published var lives = 3
     @Published var isGameOver: Bool = false     // ¿Perdió el jugador?
     @Published var gameStarted: Bool = false    // Variable que define que el juego inicio
     
@@ -43,7 +43,7 @@ class WaterModel: ObservableObject {
     
     //Otras variables?
     var maxNumObjects = 1 //Numero de objetos que pueden exister la vez
-    var vasosTomados: CGFloat = 0
+    var vasosTomados = 0
     var gameTimer: Timer?                   // Timer que actualiza el juego 60 veces/seg
     
     init() {
@@ -52,6 +52,8 @@ class WaterModel: ObservableObject {
     
     func startGame() {
         gameStarted = true
+        
+        generateObjects()
         
         //Crear un timer quue se ejecute a 60 FPS
         gameTimer = Timer.scheduledTimer(withTimeInterval: 1/60, repeats: true) { _ in
@@ -88,14 +90,17 @@ class WaterModel: ObservableObject {
         checkGameOver()
         
         //Mover los vasos
+        moveObjects()
         
     }
-    
+    func moveObjects(){
+        for index in objects.indices{
+            self.objects[index].yPos += self.gameSpeed
+        }
+    }
     
     //Revision de colisiones (con plataformas)
     func checkCollisions() {
-        print("Este es un mensaje de prueba")
-        
         for index in objects.indices {
             let object = objects[index]
             if abs(object.yPos - nutriniY) < 60 {
@@ -128,7 +133,7 @@ class WaterModel: ObservableObject {
     }
     
     func generateObjects() {
-        let currVasos = objects.count
+        var currVasos = objects.count
         while currVasos < maxNumObjects {
             //Generar espacio en x
             let xPos = CGFloat.random(in: 0...200)
@@ -136,7 +141,7 @@ class WaterModel: ObservableObject {
             //Decidir si va a ser vaso o refresco
             let objectTypeProb = CGFloat.random(in: 0...10)
             var objectType = true
-            if (objectTypeProb > 70) {
+            if (objectTypeProb < 7) {
                 objectType = false
             } else {
                 objectType = true
@@ -153,6 +158,7 @@ class WaterModel: ObservableObject {
                     
                 )
                 objects.append(object)
+                currVasos += 1
             }
             
         }
@@ -186,7 +192,9 @@ class WaterModel: ObservableObject {
     
     func restartGame() {
         // === RESETEAR TODAS LAS VARIABLES ===
-            
+        vasosTomados = 0
+        lives = 3
+        
         // Velocidad
         gameSpeed = 3.0
             
