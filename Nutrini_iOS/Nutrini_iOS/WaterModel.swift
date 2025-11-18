@@ -13,16 +13,16 @@ struct Object: Identifiable {
     var refresco = false //iD UNICO GENERADO POR SWIFT
     var xPos: CGFloat //Poricion horizontal en el mundo
     var yPos: CGFloat //Poricion vertical en el mundo
-    let width: CGFloat = 70
-    let height: CGFloat = 70
+    let width: CGFloat = 75
+    let height: CGFloat = 75
     var velocity: CGFloat
     var visible = true
 }
 
 class WaterModel: ObservableObject {
     // === POSICIÓN DEL PERSONAJE ===
-    @Published var nutriniX: CGFloat = 150      // Posición en
-    @Published var nutriniY: CGFloat = 180      // Posición vertical
+    @Published var nutriniX: CGFloat = 190      // Posición en
+    @Published var nutriniY: CGFloat = 620      // Posición vertical
     
     // === FÍSICA ===
     @Published var gameSpeed: CGFloat = 3.0     // Velocidad de movimiento horizontal
@@ -42,7 +42,7 @@ class WaterModel: ObservableObject {
     let maxSpeed: CGFloat = 8.0             // Velocidad máxima
     
     //Otras variables?
-    var maxNumObjects: CGFloat = 1 //Numero de objetos que pueden exister la vez
+    var maxNumObjects = 1 //Numero de objetos que pueden exister la vez
     var vasosTomados: CGFloat = 0
     var gameTimer: Timer?                   // Timer que actualiza el juego 60 veces/seg
     
@@ -87,17 +87,18 @@ class WaterModel: ObservableObject {
         //Verifica si se cayo al vacio
         checkGameOver()
         
+        //Mover los vasos
+        
     }
+    
     
     //Revision de colisiones (con plataformas)
     func checkCollisions() {
-        //isGrounded = false
         print("Este es un mensaje de prueba")
         
-        for object in objects {
-            // OPTIMIZACIÓN: Solo verificar plataformas cercanas
-            // Si la plataforma está muy lejos, ignorarla
-            if abs(object.yPos - nutriniY) < 60{
+        for index in objects.indices {
+            let object = objects[index]
+            if abs(object.yPos - nutriniY) < 60 {
                 //Crear rectangulo de Nutrini
                 let nutriniRect = CGRect(
                     x: nutriniX,
@@ -115,19 +116,19 @@ class WaterModel: ObservableObject {
                 
                 //Si los rectangulos se tocan
                 if nutriniRect.intersects(objectRect) {
-                    if (object.refresco == true) {
+                    if object.refresco == true {
                         lives -= 1
                     } else {
                         vasosTomados += 1
                     }
-                    object.visible = false
+                    objects[index].visible = false
                 }
             }
         }
     }
     
     func generateObjects() {
-        let currVasos: CGFloat = objects.count
+        let currVasos = objects.count
         while currVasos < maxNumObjects {
             //Generar espacio en x
             let xPos = CGFloat.random(in: 0...200)
@@ -146,7 +147,7 @@ class WaterModel: ObservableObject {
                 let object = Object(
                     refresco: objectType,
                     xPos: xPos,
-                    yPos: 500,
+                    yPos: 100,
                     velocity: gameSpeed
                     
                     

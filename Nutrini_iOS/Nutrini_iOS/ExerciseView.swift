@@ -19,7 +19,6 @@ struct ExerciseView: View {
             
             nutriniView //Nutrini
             
-            //No entiendo esto
             if exerciseModel.isGameOver {
                 gameOverOverlay
             }
