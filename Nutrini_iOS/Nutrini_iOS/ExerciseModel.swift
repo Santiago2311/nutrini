@@ -53,7 +53,7 @@ class ExerciseModel: ObservableObject {
     let maxPlatformsPerGroup = 7           // Máximo de plataformas por grupo
     let minGroupGap: CGFloat = 100          // Espacio mínimo entre grupos
     let maxGroupGap: CGFloat = 230          // Espacio máximo entre grupos
-    let maxYGap: CGFloat = 350          // Espacio máximo entre grupos
+    let maxYGap: CGFloat = 500          // Espacio máximo entre grupos
     let platformSpacing: CGFloat = 70       // Separación dentro de un grupo
     
     var gameTimer: Timer?                   // Timer que actualiza el juego 60 veces/seg
@@ -253,7 +253,7 @@ class ExerciseModel: ObservableObject {
             lastPlatformX += gap
             
             var yDistance = lastPlatformY - groupY
-            while yDistance > 60 {
+            while yDistance > 150 {
                 groupY = CGFloat.random(in: minPlatformY...maxPlatformY)
                 yDistance = lastPlatformY - groupY
             }
