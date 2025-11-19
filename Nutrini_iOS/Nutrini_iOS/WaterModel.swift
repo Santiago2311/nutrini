@@ -25,7 +25,7 @@ class WaterModel: ObservableObject {
     @Published var nutriniY: CGFloat = 620      // Posición vertical
     
     // === FÍSICA ===
-    @Published var gameSpeed: CGFloat = 1.0     // Velocidad de movimiento horizontal
+    @Published var gameSpeed: CGFloat = 2.0     // Velocidad de movimiento horizontal
     
     // === ESTADO DEL JUEGO ===
     @Published var objects: [Object] = []   // Array de todos los objetos
@@ -46,6 +46,9 @@ class WaterModel: ObservableObject {
     var vasosTomados = 0
     var gameTimer: Timer?                   // Timer que actualiza el juego 60 veces/seg
     var frameCount = 0 //Para contar los segunos
+    var framesSinceLastObject = 0 // NUEVO: Contador de frames desde el último objeto generado
+    let minFramesBetweenObjects = 5 // NUEVO: Mínimo de frames entre objetos
+    var lastObjectX:CGFloat = 0
     
     init() {
         
@@ -71,9 +74,11 @@ class WaterModel: ObservableObject {
     
     //funcionamiento real del juego
     func updateGame() {
-        
         //Si el juego se acaba, no hacer nada
         guard !isGameOver else { return }
+        
+        framesSinceLastObject += 1
+        frameCount += 1
         
         //Detectar si nutrini cae en una plataforma
         checkCollisions()
@@ -109,7 +114,7 @@ class WaterModel: ObservableObject {
                 let nutriniRect = CGRect(
                     x: nutriniX,
                     y: nutriniY,
-                    width: nutriniWidth,
+                    width: nutriniWidth - 40,
                     height: nutriniHeight
                 )
                 
@@ -135,9 +140,13 @@ class WaterModel: ObservableObject {
     
     func generateObjects() {
         var currVasos = objects.count
-        if currVasos < maxNumObjects {
+        if currVasos < maxNumObjects && framesSinceLastObject > 20{
             //Generar espacio en x
-            let xPos = CGFloat.random(in: 30...360)
+            var xPos = CGFloat.random(in: 30...360)
+            while abs(lastObjectX - xPos) < 10 {
+                xPos = CGFloat.random(in: 30...360)
+            }
+            
             
             //Decidir si va a ser vaso o refresco
             let objectTypeProb = CGFloat.random(in: 0...10)
@@ -152,24 +161,27 @@ class WaterModel: ObservableObject {
             )
             objects.append(object)
             currVasos += 1
+            framesSinceLastObject = 0
+            lastObjectX = xPos
         }
     }
     
     func removeObjects() {
         objects.removeAll { object in
-            object.yPos > 800 || !object.visible
+            object.yPos > 900 || !object.visible
             
         }
     }
     
     func increaseSpeed() {
-        frameCount += 1
         //Solo aumentar si no ha llegado al maximo
         if gameSpeed < maxSpeed {
             gameSpeed += speedIncreaseRate //+0.001 por frame
         }
-        if frameCount >= 220 && maxNumObjects < 7 {
-            maxNumObjects += 1
+        if frameCount >= 220 {
+            if maxNumObjects < 7 {
+                maxNumObjects += 1
+            }
             frameCount = 0
         }
     }
@@ -187,7 +199,8 @@ class WaterModel: ObservableObject {
     }
     
     func restartGame() {
-        startGame()
+        stopGame()
+    
         // === RESETEAR TODAS LAS VARIABLES ===
         vasosTomados = 0
         lives = 3
@@ -203,6 +216,8 @@ class WaterModel: ObservableObject {
         // Estado
         isGameOver = false
         gameStarted = false
+        
+        startGame()
     }
     
 }
