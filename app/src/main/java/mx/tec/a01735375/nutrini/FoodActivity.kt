@@ -4,161 +4,294 @@ import android.content.pm.ActivityInfo
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
-import mx.tec.a01735375.nutrini.ui.theme.NutriniTheme
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.math.pow
+import kotlin.math.sqrt
 
-class FoodActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            NutriniTheme {
-                //FoodView()
-            }
-        }
-    }
+enum class FoodCategory {
+    fruits_vegetables, cereals, healthy_fats, legumes, animal_origin
 }
+
+data class Food(
+    val id: String,
+    val iconResource: Int,
+    val label: String,
+    val category: FoodCategory
+)
+
+data class PlacedFood(
+    val food: Food,
+    val position: Offset,
+    val id: Int = System.currentTimeMillis().toInt()
+)
 
 @Composable
 fun FoodView(navController: NavController) {
     LockScreenOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
-    var selectedFood by remember { mutableStateOf<String?>(null) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF4A90E2))
-    ) {
-        // Top section with back arrow and food options
-        TopFoodSection(
-            selectedFood = selectedFood,
-            onFoodSelected = { selectedFood = it },
-            navController
-        )
+    var foodsOnPlate by remember { mutableStateOf<List<PlacedFood>>(emptyList()) }
+    var plateBounds by remember { mutableStateOf<Rect?>(null) }
+    var showDialog by remember { mutableStateOf(false) }
+    var dialogMessage by remember { mutableStateOf("") }
+    var isWinner by remember { mutableStateOf(false) }
 
-        // White background area with trash icon and plate
+    // Estado para la imagen arrastrada
+    var draggingFood by remember { mutableStateOf<Food?>(null) }
+    var draggingPosition by remember { mutableStateOf<Offset?>(null) }
+
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .background(Color.White)
+                .fillMaxSize()
+                .background(Color(0xFF4A90E2))
         ) {
-            // Trash icon at the top right of white area
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 20.dp, end = 20.dp),
-                horizontalArrangement = Arrangement.End
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.eliminar),
-                    contentDescription = "Trash",
-                    modifier = Modifier.size(60.dp),
+            // Sección de alimentos
+            TopFoodSection(
+                navController = navController,
+                onFoodDragStart = { food, position ->
+                    draggingFood = food
+                    draggingPosition = position
+                },
+                onFoodDragUpdate = { position ->
+                    draggingPosition = position
+                },
+                onFoodDragEnd = { food, finalPosition ->
+                    // Verificar si está dentro del plato
+                    plateBounds?.let { bounds ->
+                        if (isInsidePlate(finalPosition, bounds)) {
+                            // Agregar alimento al plato exactamente donde se soltó
+                            foodsOnPlate = foodsOnPlate + PlacedFood(food, finalPosition)
+                        }
+                    }
+                    draggingFood = null
+                    draggingPosition = null
+                }
+            )
 
-                    )
-            }
-
-            // Plate area
-            Box(
+            // Fondo blanco
+            Column(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .padding(horizontal = 32.dp),
+                    .background(Color.White)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 20.dp, end = 20.dp),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.eliminar),
+                        contentDescription = "Trash",
+                        modifier = Modifier.size(60.dp)
+                    )
+                }
+
+                // Área del plato
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(horizontal = 32.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    // Plato
+                    Image(
+                        painter = painterResource(id = R.drawable.plato_juego),
+                        contentDescription = "Plate",
+                        modifier = Modifier
+                            .size(400.dp)
+                            .onGloballyPositioned { coordinates ->
+                                plateBounds = coordinates.boundsInWindow()
+                            },
+                        contentScale = ContentScale.Fit
+                    )
+
+                    // Contenedor para alimentos en el plato
+                    Box(
+                        modifier = Modifier
+                            .size(400.dp)
+                    ) {
+                        foodsOnPlate.forEach { placedFood ->
+                            key(placedFood.id) {
+                                var currentPosition by remember(placedFood.id) { mutableStateOf(placedFood.position) }
+
+                                Image(
+                                    painter = painterResource(id = placedFood.food.iconResource),
+                                    contentDescription = placedFood.food.label,
+                                    modifier = Modifier
+                                        .offset {
+                                            // Calcular offset relativo al contenedor del plato
+                                            plateBounds?.let { bounds ->
+                                                val offsetX = (currentPosition.x - bounds.left - 30.dp.toPx()).toInt()
+                                                val offsetY = (currentPosition.y - bounds.top - 30.dp.toPx()).toInt()
+                                                androidx.compose.ui.unit.IntOffset(offsetX, offsetY)
+                                            } ?: androidx.compose.ui.unit.IntOffset.Zero
+                                        }
+                                        .size(60.dp)
+                                        .pointerInput(placedFood.id) {
+                                            detectDragGestures(
+                                                onDrag = { change, dragAmount ->
+                                                    change.consume()
+                                                    currentPosition = Offset(
+                                                        currentPosition.x + dragAmount.x,
+                                                        currentPosition.y + dragAmount.y
+                                                    )
+                                                },
+                                                onDragEnd = {
+                                                    // Verificar si sigue dentro del plato
+                                                    plateBounds?.let { bounds ->
+                                                        if (!isInsidePlate(currentPosition, bounds)) {
+                                                            // Eliminar del plato si está fuera
+                                                            foodsOnPlate = foodsOnPlate.filter {
+                                                                it.id != placedFood.id
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            )
+                                        },
+                                    contentScale = ContentScale.Fit
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(16.dp),
                 contentAlignment = Alignment.Center
             ) {
+                Button(
+                    onClick = {
+                        val result = checkBalancedPlate(foodsOnPlate)
+                        isWinner = result.first
+                        dialogMessage = result.second
+                        showDialog = true
+                    },
+                    modifier = Modifier
+                        .width(140.dp)
+                        .height(80.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFFFB74D)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        text = "¡Listo!",
+                        color = Color.White,
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Normal,
+                        fontFamily = cherryFamily
+                    )
+                }
+            }
+        }
+
+        // Overlay global para la imagen siendo arrastrada
+        if (draggingFood != null && draggingPosition != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .zIndex(9999f)
+            ) {
                 Image(
-                    painter = painterResource(id = R.drawable.plato_juego),
-                    contentDescription = "Plate",
-                    modifier = Modifier.size(400.dp),
-                    contentScale = ContentScale.Fit
+                    painter = painterResource(id = draggingFood!!.iconResource),
+                    contentDescription = "${draggingFood!!.label} dragging",
+                    modifier = Modifier
+                        .offset {
+                            androidx.compose.ui.unit.IntOffset(
+                                (draggingPosition!!.x - 40.dp.toPx()).toInt(),
+                                (draggingPosition!!.y - 40.dp.toPx()).toInt()
+                            )
+                        }
+                        .size(80.dp),
+                    contentScale = ContentScale.Fit,
+                    alpha = 0.9f
                 )
             }
         }
 
-        // Bottom button
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White)
-                .padding(16.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Button(
-                onClick = { /* TODO: Listo functionality */ },
-                modifier = Modifier
-                    .width(140.dp)
-                    .height(80.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFFFB74D)
-                ),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text(
-                    text = "¡Listo!",
-                    color = Color.White,
-                    fontSize = 34.sp,
-                    fontWeight = FontWeight.Normal,
-                    fontFamily = cherryFamily
-                )
-            }
+        // Mensaje de resultado
+        if (showDialog) {
+            AlertDialog(
+                onDismissRequest = { showDialog = false },
+                title = {
+                    Text(
+                        text = if (isWinner) "¡Felicidades! 🎉" else "¡Intenta de nuevo!",
+                        fontFamily = cherryFamily,
+                        fontSize = 24.sp
+                    )
+                },
+                text = {
+                    Text(
+                        text = dialogMessage,
+                        fontSize = 18.sp
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showDialog = false
+                            if (!isWinner) {
+                                foodsOnPlate = emptyList()
+                            }
+                        }
+                    ) {
+                        Text(if (isWinner) "¡Genial!" else "Reintentar")
+                    }
+                }
+            )
         }
     }
 }
 
 @Composable
 fun TopFoodSection(
-    selectedFood: String?,
-    onFoodSelected: (String) -> Unit,
-    navController: NavController
+    navController: NavController,
+    onFoodDragStart: (Food, Offset) -> Unit,
+    onFoodDragUpdate: (Offset) -> Unit,
+    onFoodDragEnd: (Food, Offset) -> Unit
 ) {
-    // val comida = listOf<String>("aguacate", "almendra", "bolillo")
     Column(
-        modifier = Modifier
-            .padding(bottom = 30.dp)
+        modifier = Modifier.padding(bottom = 30.dp)
     ) {
-        // Back arrow only
+        // Flecha hacia atras
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -176,231 +309,208 @@ fun TopFoodSection(
             }
         }
 
-        // Food options
-        Row(
+        LazyRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 10.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // for (c in comida) {
-            // FoodOption(
-            //    iconResource = R.drawable.c,
-            //    label = "$c".uppercase(),
-            //    isSelected = selectedFood == "c",
-            //    onClick = { onFoodSelected("c") }
-            // )
-            // }
-            FoodOption(
-                iconResource = R.drawable.aguacate,
-                label = "Aguacate",
-                isSelected = selectedFood == "aguacate",
-                onClick = { onFoodSelected("aguacate") }
-            )
-            FoodOption(
-                iconResource = R.drawable.almendra,
-                label = "Almendra",
-                isSelected = selectedFood == "almendra",
-                onClick = { onFoodSelected("almendra") }
-            )
-            FoodOption(
-                iconResource = R.drawable.bolillo,
-                label = "Bolillo",
-                isSelected = selectedFood == "bolillo",
-                onClick = { onFoodSelected("bolillo") }
-            )
-            FoodOption(
-                iconResource = R.drawable.brocoli,
-                label = "Brocoli",
-                isSelected = selectedFood == "brocoli",
-                onClick = { onFoodSelected("brocoli") }
-            )
-            FoodOption(
-                iconResource = R.drawable.cebolla,
-                label = "Cebolla",
-                isSelected = selectedFood == "cebolla",
-                onClick = { onFoodSelected("cebolla") }
-            )
-            FoodOption(
-                iconResource = R.drawable.chile,
-                label = "Chile",
-                isSelected = selectedFood == "chile",
-                onClick = { onFoodSelected("chile") }
-            )
-            FoodOption(
-                iconResource = R.drawable.cuerno,
-                label = "Cuerno",
-                isSelected = selectedFood == "cuerno",
-                onClick = { onFoodSelected("cuerno") }
-            )
-            FoodOption(
-                iconResource = R.drawable.frijoles,
-                label = "Frijoles",
-                isSelected = selectedFood == "frijoles",
-                onClick = { onFoodSelected("frijoles") }
-            )
-            FoodOption(
-                iconResource = R.drawable.frijoles_negros,
-                label = "Frijoles Negros",
-                isSelected = selectedFood == "frijoles_negros",
-                onClick = { onFoodSelected("frijol_negros") }
-            )
-            FoodOption(
-                iconResource = R.drawable.garbanzos,
-                label = "Garbanzos",
-                isSelected = selectedFood == "garbanzos",
-                onClick = { onFoodSelected("garbanzos") }
-            )
-            FoodOption(
-                iconResource = R.drawable.habas,
-                label = "Habas",
-                isSelected = selectedFood == "habas",
-                onClick = { onFoodSelected("habas") }
-            )
-            FoodOption(
-                iconResource = R.drawable.huevo,
-                label = "Huevo",
-                isSelected = selectedFood == "huevo",
-                onClick = { onFoodSelected("huevo") }
-            )
-            FoodOption(
-                iconResource = R.drawable.lentejas,
-                label = "Lentejas",
-                isSelected = selectedFood == "lentejas",
-                onClick = { onFoodSelected("lentejas") }
-            )
-            FoodOption(
-                iconResource = R.drawable.mani,
-                label = "Mani",
-                isSelected = selectedFood == "mani",
-                onClick = { onFoodSelected("mani") }
-            )
-            FoodOption(
-                iconResource = R.drawable.pan,
-                label = "Pan",
-                isSelected = selectedFood == "pan",
-                onClick = { onFoodSelected("pan") }
-            )
-            FoodOption(
-                iconResource = R.drawable.papa,
-                label = "Papa",
-                isSelected = selectedFood == "papa",
-                onClick = { onFoodSelected("papa") }
-            )
-            FoodOption(
-                iconResource = R.drawable.pera,
-                label = "Pera",
-                isSelected = selectedFood == "pera",
-                onClick = { onFoodSelected("pera") }
-            )
-            FoodOption(
-                iconResource = R.drawable.pescado,
-                label = "Pescado",
-                isSelected = selectedFood == "pescado",
-                onClick = { onFoodSelected("pescado") }
-            )
-            FoodOption(
-                iconResource = R.drawable.pina,
-                label = "Pina",
-                isSelected = selectedFood == "pina",
-                onClick = { onFoodSelected("pina") }
-            )
-            FoodOption(
-                iconResource = R.drawable.pollo,
-                label = "Pollo",
-                isSelected = selectedFood == "pollo",
-                onClick = { onFoodSelected("pollo") }
-            )
-            FoodOption(
-                iconResource = R.drawable.queso,
-                label = "Queso",
-                isSelected = selectedFood == "queso",
-                onClick = { onFoodSelected("queso") }
-            )
-            FoodOption(
-                iconResource = R.drawable.res,
-                label = "Res",
-                isSelected = selectedFood == "res",
-                onClick = { onFoodSelected("res") }
-            )
-            FoodOption(
-                iconResource = R.drawable.tomate,
-                label = "Tomate",
-                isSelected = selectedFood == "tomate",
-                onClick = { onFoodSelected("tomate") }
-            )
-            FoodOption(
-                iconResource = R.drawable.tomate,
-                label = "Tomate",
-                isSelected = selectedFood == "tomate",
-                onClick = { onFoodSelected("tomate") }
-            )
-            FoodOption(
-                iconResource = R.drawable.tortilla,
-                label = "Tortilla",
-                isSelected = selectedFood == "tortilla",
-                onClick = { onFoodSelected("tortilla") }
-            )
-            FoodOption(
-                iconResource = R.drawable.uva,
-                label = "Uvas",
-                isSelected = selectedFood == "uva",
-                onClick = { onFoodSelected("uva") }
-            )
-        }
-    }
-}
+            val foodItems = getFoodList()
 
-@Composable
-fun FoodOption(
-    iconResource: Int,
-    label: String,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.clickable { onClick() }
-    ) {
-        // Food icon with selection indicator
-        Box {
-            Image(
-                painter = painterResource(id = iconResource),
-                contentDescription = label,
-                modifier = Modifier
-                    .size(90.dp)
-                    .padding(4.dp),
-                contentScale = ContentScale.Fit
-            )
-
-            // Selection indicator
-            if (isSelected) {
-                Box(
-                    modifier = Modifier
-                        .size(60.dp)
-                        .background(
-                            Color.White.copy(alpha = 0.3f),
-                            RoundedCornerShape(8.dp)
-                        )
+            items(foodItems.size) { index ->
+                val food = foodItems[index]
+                DraggableFoodOption(
+                    food = food,
+                    onDragStart = { offset -> onFoodDragStart(food, offset) },
+                    onDragUpdate = { offset -> onFoodDragUpdate(offset) },
+                    onDragEnd = { offset -> onFoodDragEnd(food, offset) }
                 )
             }
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = label,
-            color = Color.White,
-            fontSize = 34.sp,
-            fontWeight = FontWeight.Normal,
-            fontFamily = cherryFamily,
-            textAlign = TextAlign.Center
-        )
     }
 }
 
-@Preview(showBackground = true)
 @Composable
-fun FoodSelectionScreenPreview() {
-    //FoodView()
+fun DraggableFoodOption(
+    food: Food,
+    onDragStart: (Offset) -> Unit,
+    onDragUpdate: (Offset) -> Unit,
+    onDragEnd: (Offset) -> Unit
+) {
+    var itemBounds by remember { mutableStateOf<Rect?>(null) }
+    var isDragging by remember { mutableStateOf(false) }
+    var isLongPressActive by remember { mutableStateOf(false) }
+    var currentDragPosition by remember { mutableStateOf<Offset?>(null) }
+    val coroutineScope = rememberCoroutineScope()
+    var longPressJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
+
+    Box(
+        modifier = Modifier.width(100.dp)
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxWidth()
+                .onGloballyPositioned { coordinates ->
+                    itemBounds = coordinates.boundsInWindow()
+                }
+                .pointerInput(food.id) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            val down = awaitFirstDown()
+
+                            longPressJob = coroutineScope.launch {
+                                delay(1000L)
+                                isLongPressActive = true
+                            }
+
+                            // Esperar a que se mueva o se suelte
+                            val change = withTimeoutOrNull(1000L) {
+                                waitForUpOrCancellation()
+                            }
+
+                            if (change == null && isLongPressActive) {
+                                // Se cumplió 1 segundo y no se soltó -> activar drag
+                                var currentChange = down
+
+                                // Calcular posición inicial absoluta
+                                itemBounds?.let { bounds ->
+                                    val absolutePos = Offset(
+                                        bounds.left + currentChange.position.x,
+                                        bounds.top + currentChange.position.y
+                                    )
+                                    currentDragPosition = absolutePos
+                                    isDragging = true
+                                    onDragStart(absolutePos)
+                                }
+
+                                // Loop de drag
+                                do {
+                                    val event = awaitPointerEvent()
+                                    event.changes.forEach { it.consume() }
+
+                                    val dragChange = event.changes.firstOrNull()
+                                    if (dragChange != null && isDragging) {
+                                        itemBounds?.let { bounds ->
+                                            val absolutePos = Offset(
+                                                bounds.left + dragChange.position.x,
+                                                bounds.top + dragChange.position.y
+                                            )
+                                            currentDragPosition = absolutePos
+                                            onDragUpdate(absolutePos)
+                                        }
+                                    }
+                                } while (event.changes.any { it.pressed })
+
+                                // Drag terminado
+                                currentDragPosition?.let { finalPos ->
+                                    onDragEnd(finalPos)
+                                }
+                            } else {
+                                // Se soltó antes de 1 segundo o se canceló
+                                longPressJob?.cancel()
+                            }
+
+                            // Reset de estados
+                            isDragging = false
+                            isLongPressActive = false
+                            currentDragPosition = null
+                            longPressJob = null
+                        }
+                    }
+                }
+        ) {
+            Box(
+                modifier = Modifier.size(90.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(id = food.iconResource),
+                    contentDescription = food.label,
+                    modifier = Modifier
+                        .size(80.dp)
+                        .padding(4.dp),
+                    contentScale = ContentScale.Fit,
+                    alpha = if (isDragging) 0.3f else if (isLongPressActive) 0.7f else 1f
+                )
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = food.label,
+                color = Color.White,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Normal,
+                fontFamily = cherryFamily,
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                modifier = Modifier.alpha(if (isDragging) 0.5f else 1f)
+            )
+        }
+    }
+}
+
+fun getFoodList(): List<Food> {
+    return listOf(
+        Food("aguacate", R.drawable.aguacate, "Aguacate", FoodCategory.healthy_fats),
+        Food("almendra", R.drawable.almendra, "Almendra", FoodCategory.healthy_fats),
+        Food("bolillo", R.drawable.bolillo, "Bolillo", FoodCategory.cereals),
+        Food("brocoli", R.drawable.brocoli, "Brócoli", FoodCategory.fruits_vegetables),
+        Food("cuerno", R.drawable.cuerno, "Cuerno", FoodCategory.cereals),
+        Food("frijoles_negros", R.drawable.frijoles_negros, "Frijoles", FoodCategory.legumes),
+        Food("garbanzos", R.drawable.garbanzos, "Garbanzos", FoodCategory.legumes),
+        Food("habas", R.drawable.habas, "Habas", FoodCategory.legumes),
+        Food("huevo", R.drawable.huevo, "Huevo", FoodCategory.animal_origin),
+        Food("lentejas", R.drawable.lentejas, "Lentejas", FoodCategory.legumes),
+        Food("mani", R.drawable.mani, "Maní", FoodCategory.healthy_fats),
+        Food("pan", R.drawable.pan, "Pan", FoodCategory.cereals),
+        Food("papa", R.drawable.papa, "Papa", FoodCategory.cereals),
+        Food("pera", R.drawable.pera, "Pera", FoodCategory.fruits_vegetables),
+        Food("pescado", R.drawable.pescado, "Pescado", FoodCategory.animal_origin),
+        Food("pina", R.drawable.pina, "Piña", FoodCategory.fruits_vegetables),
+        Food("pollo", R.drawable.pollo, "Pollo", FoodCategory.animal_origin),
+        Food("queso", R.drawable.queso, "Queso", FoodCategory.animal_origin),
+        Food("res", R.drawable.res, "Res", FoodCategory.animal_origin),
+        Food("tomate", R.drawable.tomate, "Tomate", FoodCategory.fruits_vegetables),
+        Food("tortilla", R.drawable.tortilla, "Tortilla", FoodCategory.cereals),
+        Food("uva", R.drawable.uva, "Uvas", FoodCategory.fruits_vegetables)
+    )
+}
+
+fun isInsidePlate(position: Offset, plateBounds: Rect): Boolean {
+    val centerX = plateBounds.center.x
+    val centerY = plateBounds.center.y
+    val radius = plateBounds.width / 2 * 0.75f
+
+    val distance = sqrt(
+        (position.x - centerX).pow(2) + (position.y - centerY).pow(2)
+    )
+
+    return distance <= radius
+}
+
+fun checkBalancedPlate(foodsOnPlate: List<PlacedFood>): Pair<Boolean, String> {
+    val categories = foodsOnPlate.map { it.food.category }.toSet()
+
+    val hasProtein = categories.contains(FoodCategory.animal_origin)
+    val hasCereals = categories.contains(FoodCategory.cereals)
+    val hasFruits = categories.contains(FoodCategory.fruits_vegetables)
+    val hasLegumes = categories.contains(FoodCategory.legumes)
+    val hasFats = categories.contains(FoodCategory.healthy_fats)
+
+    val allCategories = hasProtein && hasCereals && hasFruits && hasLegumes && hasFats
+
+    return if (allCategories) {
+        Pair(true, "¡Excelente! Tu plato tiene todos los grupos de alimentos: origen animal, cereales, frutas y vegetales, leguminosas y grasas saludables. ¡Está perfectamente balanceado!")
+    } else {
+        val missing = mutableListOf<String>()
+        if (!hasProtein) missing.add("Origen animal")
+        if (!hasCereals) missing.add("Cereales")
+        if (!hasFruits) missing.add("Frutas y Vegetales")
+        if (!hasLegumes) missing.add("Leguminosas")
+        if (!hasFats) missing.add("Grasas saludables")
+
+        Pair(false, "Tu plato no está balanceado. ¡Intenta agregar otros alimentos!")
+    }
 }
