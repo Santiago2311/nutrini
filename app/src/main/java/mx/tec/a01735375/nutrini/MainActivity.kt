@@ -2,6 +2,7 @@ package mx.tec.a01735375.nutrini
 
 import android.app.Activity
 import android.content.pm.ActivityInfo
+import android.graphics.Point
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
@@ -51,6 +52,9 @@ import mx.tec.a01735375.nutrini.ui.theme.Typography
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val display = windowManager.defaultDisplay
+        val size = Point()
+        display.getSize(size)
         enableEdgeToEdge()
         setContent {
             NutriniTheme {
