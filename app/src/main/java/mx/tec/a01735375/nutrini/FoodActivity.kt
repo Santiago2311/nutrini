@@ -360,7 +360,7 @@ fun DraggableFoodOption(
                             val down = awaitFirstDown()
 
                             longPressJob = coroutineScope.launch {
-                                delay(1000L)
+                                delay(300L)
                                 isLongPressActive = true
                             }
 
