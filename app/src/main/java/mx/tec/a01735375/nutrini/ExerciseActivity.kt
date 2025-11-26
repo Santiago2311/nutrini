@@ -54,8 +54,9 @@ fun ExerciseView(navController: NavController) {
     var score by remember { mutableStateOf(0) }
     var scrollSpeed by remember { mutableStateOf(5f) }
     var showDialog by remember { mutableStateOf(false) }
+    var countdown by remember { mutableStateOf(3) }
+    var gameStarted by remember { mutableStateOf(false) }
 
-    // Plataformas iniciales - todas en la parte superior/media de la pantalla
     var platforms by remember {
         mutableStateOf(
             listOf(
@@ -78,117 +79,131 @@ fun ExerciseView(navController: NavController) {
     val bounceAnimation = remember { Animatable(0f) }
     val coroutineScope = rememberCoroutineScope()
 
-    // Animación continua mientras está en el suelo
+    // Countdown de 3 segundos al inicio
+    LaunchedEffect(countdown) {
+        if (countdown > 0 && !gameStarted) {
+            while (countdown > 0) {
+                delay(1000L)
+                countdown--
+            }
+            gameStarted = true
+        }
+    }
+
+    // Animación mientras está en el suelo (caminar)
     LaunchedEffect(isOnGround, gameState) {
         if (isOnGround && gameState == GameState.PLAYING) {
-            // Loop infinito para animación continua
-            while (true) {
-                // Balanceo de izquierda a derecha
-                launch {
-                    runAnimation.animateTo(
-                        targetValue = 1f,
-                        animationSpec = tween(80, easing = LinearEasing)
+            // Balanceo de izquierda a derecha
+            launch {
+                runAnimation.animateTo(
+                    targetValue = 1f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(150, easing = LinearEasing),
+                        repeatMode = RepeatMode.Reverse
                     )
-                    runAnimation.animateTo(
-                        targetValue = -1f,
-                        animationSpec = tween(80, easing = LinearEasing)
-                    )
-                }
-                // Rebote arriba-abajo
+                )
+            }
+            // Rebote arriba-abajo
+            launch {
                 bounceAnimation.animateTo(
                     targetValue = 1f,
-                    animationSpec = tween(80, easing = FastOutSlowInEasing)
-                )
-                bounceAnimation.animateTo(
-                    targetValue = 0f,
-                    animationSpec = tween(80, easing = FastOutSlowInEasing)
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(150, easing = FastOutSlowInEasing),
+                        repeatMode = RepeatMode.Reverse
+                    )
                 )
             }
         } else {
+            runAnimation.stop()
+            bounceAnimation.stop()
             runAnimation.snapTo(0f)
             bounceAnimation.snapTo(0f)
         }
     }
 
     // ---------------- LOOP DEL JUEGO ----------------
-    LaunchedEffect(gameState) {
-        if (gameState == GameState.PLAYING) {
-            var lastFrameTime = withFrameNanos { it }
+    LaunchedEffect(gameState, gameStarted) {
+        if (gameState == GameState.PLAYING && gameStarted) {
+            var lastFrameTime = 0L
 
             while (gameState == GameState.PLAYING) {
-                val currentTime = withFrameNanos { it }
-                val deltaTime = ((currentTime - lastFrameTime) / 1_000_000f).coerceAtMost(32f)
-                lastFrameTime = currentTime
-
-                val timeFactor = deltaTime / 16f
-
-                // Mover plataformas
-                platforms.forEach { p ->
-                    p.x -= scrollSpeed * timeFactor
-                }
-
-                // Limpiar plataformas fuera de pantalla
-                platforms = platforms.filter { it.x + it.width > -50f }
-
-                // Generar nuevas plataformas
-                val lastPlatform = platforms.maxByOrNull { it.x }
-                if (lastPlatform != null && lastPlatform.x < 900f) {
-                    val newX = lastPlatform.x + Random.nextInt(280, 450).toFloat()
-                    val newY = Random.nextInt(150, 350).toFloat() // Rango más alto
-                    val newW = Random.nextInt(160, 260).toFloat()
-                    platforms = platforms + Platform(newX, newY, newW)
-                }
-
-                // Aplicar gravedad
-                if (!isOnGround) {
-                    petVelocityY += 0.8f * timeFactor
-                    petY += petVelocityY * timeFactor
-                }
-
-                // Detección de colisiones con plataformas
-                var foundGround = false
-                for (platform in platforms) {
-                    val petBottom = petY + 120f
-                    val petLeft = petFixedX + 20f
-                    val petRight = petFixedX + 100f
-
-                    // Verificar si está sobre la plataforma
-                    if (
-                        petRight > platform.x &&
-                        petLeft < platform.x + platform.width &&
-                        petBottom >= platform.y &&
-                        petBottom <= platform.y + 30 &&
-                        petVelocityY >= 0
-                    ) {
-                        petY = platform.y - 120f
-                        petVelocityY = 0f
-                        isOnGround = true
-                        isJumping = false
-                        foundGround = true
-
-                        // Contar puntos solo si es una plataforma nueva
-                        if (!platform.counted && platform.id != lastPlatformId) {
-                            platform.counted = true
-                            lastPlatformId = platform.id
-                            score++
+                withFrameNanos { frameTimeNanos ->
+                    if (lastFrameTime != 0L) {
+                        val deltaTime = (frameTimeNanos - lastFrameTime) / 1_000_000L
+                        if (deltaTime < 16L) {
+                            return@withFrameNanos
                         }
-                        break
                     }
-                }
+                    lastFrameTime = frameTimeNanos
 
-                if (!foundGround) {
-                    isOnGround = false
-                }
+                    // Mover plataformas
+                    platforms = platforms.map { p ->
+                        p.copy(x = p.x - scrollSpeed)
+                    }
 
-                // Game Over si cae muy abajo
-                if (petY > 500f) {
-                    gameState = GameState.GAME_OVER
-                    showDialog = true
-                }
+                    // Limpiar plataformas fuera de pantalla
+                    platforms = platforms.filter { it.x + it.width > -50f }
 
-                // Aumentar dificultad progresivamente
-                if (score > 0 && score % 10 == 0) {
-                    scrollSpeed = (4f + score * 0.1f).coerceAtMost(8f)
+                    // Generar nuevas plataformas
+                    val lastPlatform = platforms.maxByOrNull { it.x }
+                    if (lastPlatform != null && lastPlatform.x < 500f) {
+                        val newX = lastPlatform.x + Random.nextInt(280, 350).toFloat()
+                        val newY = Random.nextInt(150, 300).toFloat() // Rango más alto
+                        val newW = Random.nextInt(160, 260).toFloat()
+                        platforms = platforms + Platform(newX, newY,newW)
+                    }
+
+                    // Aplicar gravedad
+                    if (!isOnGround) {
+                        petVelocityY += 0.8f
+                        petY += petVelocityY
+                    }
+
+                    // Detección de colisiones con plataformas
+                    var foundGround = false
+                    for (platform in platforms) {
+                        val petBottom = petY + 120f
+                        val petLeft = petFixedX + 20f
+                        val petRight = petFixedX + 100f
+
+                        // Verificar si está sobre la plataforma
+                        if (
+                            petRight > platform.x &&
+                            petLeft < platform.x + platform.width &&
+                            petBottom >= platform.y &&
+                            petBottom <= platform.y + 30 &&
+                            petVelocityY >= 0
+                        ) {
+                            petY = platform.y - 120f
+                            petVelocityY = 0f
+                            isOnGround = true
+                            isJumping = false
+                            foundGround = true
+
+                            // Contar puntos solo si es una plataforma nueva
+                            if (!platform.counted && platform.id != lastPlatformId) {
+                                platform.counted = true
+                                lastPlatformId = platform.id
+                                score++
+                            }
+                            break
+                        }
+                    }
+
+                    if (!foundGround) {
+                        isOnGround = false
+                    }
+
+                    // Game Over
+                    if (petY > 500f) {
+                        gameState = GameState.GAME_OVER
+                        showDialog = true
+                    }
+
+                    // Aumentar dificultad progresivamente
+                    if (score > 0 && score % 10 == 0) {
+                        scrollSpeed = (4f + score * 0.1f).coerceAtMost(8f)
+                    }
                 }
             }
         }
@@ -199,7 +214,7 @@ fun ExerciseView(navController: NavController) {
             .fillMaxSize()
             .background(Color(0xFF2D72DA))
             .clickable(
-                enabled = gameState == GameState.PLAYING,
+                enabled = gameState == GameState.PLAYING && gameStarted,
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
             ) {
@@ -231,8 +246,8 @@ fun ExerciseView(navController: NavController) {
 
         // Marcador de puntos
         Text(
-            text = "Plataformas: $score",
-            color = Color.White,
+            text = "Puntuación: $score",
+            color = Color.Black,
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             fontFamily = cherryFamily,
@@ -240,6 +255,24 @@ fun ExerciseView(navController: NavController) {
                 .align(Alignment.TopEnd)
                 .padding(16.dp)
         )
+
+        // Countdown al inicio
+        if (!gameStarted && countdown > 0) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = countdown.toString(),
+                    color = Color.White,
+                    fontSize = 120.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = cherryFamily
+                )
+            }
+        }
 
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
 
@@ -263,16 +296,12 @@ fun ExerciseView(navController: NavController) {
                     .size(120.dp)
                     .graphicsLayer {
                         if (isOnGround) {
-                            // Animación de correr fluida tipo Pou
-                            // Balanceo lateral continuo
                             rotationZ = runAnimation.value * 5f
                             // Rebote vertical continuo
                             translationY = -bounceAnimation.value * 12f
-                            // Pequeña inclinación adelante mientras corre
                             scaleX = 1f + (bounceAnimation.value * 0.05f)
                             scaleY = 1f - (bounceAnimation.value * 0.05f)
                         } else {
-                            // En el aire - rotación según velocidad
                             rotationZ = (petVelocityY * 1.5f).coerceIn(-25f, 25f)
                             scaleX = 1f
                             scaleY = 1f
@@ -296,13 +325,15 @@ fun ExerciseView(navController: NavController) {
                     )
                 },
                 confirmButton = {
+                    // Boton de reinicio
                     Button(
                         onClick = {
-                            // Reiniciar el juego
                             gameState = GameState.PLAYING
                             score = 0
                             scrollSpeed = 5f
                             lastPlatformId = -1
+                            countdown = 3
+                            gameStarted = false
                             platforms = listOf(
                                 Platform(0f, 320f, 400f, counted = true),
                                 Platform(500f, 280f, 200f),
