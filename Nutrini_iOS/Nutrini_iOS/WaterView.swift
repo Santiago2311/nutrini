@@ -7,9 +7,9 @@
 
 import SwiftUI
 
-private func getGameResult(vasos: Int) -> (stars: Int, message: String) {
-    //@StateObject var waterModel = WaterModel()
-    //let vasos = waterModel.vasosTomados
+private func getGameResult() -> (stars: Int, message: String) {
+    @StateObject var waterModel = WaterModel()
+    let vasos = waterModel.vasosTomados
         
     switch vasos {
     case 0...2:
@@ -130,7 +130,7 @@ struct WaterView: View {
     }
     
     var gameOverOverlay: some View {
-        let result = getGameResult(vasos: waterModel.vasosTomados)
+        let result = getGameResult()
         
         return ZStack {
             Color.black.opacity(0.4)
@@ -142,14 +142,11 @@ struct WaterView: View {
                 
                 HStack(spacing: 8) {
                     ForEach(0..<result.stars, id: \.self) { _ in
-                        Image("estrella_icon")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 50, height: 50)
-                            //.font(.largeTitle)
-                            //.foregroundColor(
-                              //  Color(uiColor: UIColor(red: 255/255, green: 198/255, blue: 0/255, alpha: 1.0))
-                            //)
+                        Image(systemName: "star.fill")
+                            .font(.largeTitle)
+                            .foregroundColor(
+                                Color(uiColor: UIColor(red: 255/255, green: 198/255, blue: 0/255, alpha: 1.0))
+                            )
                     }
                 }
                 Text(result.message)

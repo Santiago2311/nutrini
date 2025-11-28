@@ -56,7 +56,6 @@ class ExerciseModel: ObservableObject {
     let maxYGap: CGFloat = 500          // Espacio máximo entre grupos
     let platformSpacing: CGFloat = 70       // Separación dentro de un grupo
     
-    //var distanceTraveled: CGFloat = 0
     var gameTimer: Timer?                   // Timer que actualiza el juego 60 veces/seg
     var lastPlatformX: CGFloat = 0          // Última posición X donde generamos plataforma
     var lastPlatformY: CGFloat = 0          // Última posición y donde generamos plataforma
