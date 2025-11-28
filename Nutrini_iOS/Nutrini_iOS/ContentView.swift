@@ -57,7 +57,7 @@ struct ContentView: View {
                     // HStack inferior
                     HStack(spacing: 10) {
                         NavigationLink(destination: FoodView()) {
-                            // 🔥 Progreso real de comida
+                            // Progreso Comida
                             MenuButton(
                                 iconName: "comida_icon",
                                 label: "Comida",
@@ -67,7 +67,7 @@ struct ContentView: View {
                         }
                         
                         NavigationLink(destination: WaterView()) {
-                            // Por ahora, base 25% rojo (hasta que lo conectemos)
+                            // base 25% rojo
                             MenuButton(
                                 iconName: "agua_icon",
                                 label: "Agua",

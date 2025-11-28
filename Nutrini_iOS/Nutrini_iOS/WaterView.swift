@@ -7,117 +7,103 @@
 
 import SwiftUI
 
-private func getGameResult() -> (stars: Int, message: String) {
-    @StateObject var waterModel = WaterModel()
-    let vasos = waterModel.vasosTomados
-        
+private func getGameResult(vasos: Int) -> (stars: Int, message: String) {
     switch vasos {
-    case 0...2:
-        return (0, "Buen intento. Sigue practicando")
-    case 3...5:
-        return (1, "Buen inicio, pero aún necesitas tomar un poco mas de agua")
+    case 0...5:
+        return (1, "Buen inicio, pero aún necesitas tomar más agua")
     case 6...7:
-        return (2, "¡Muy bien! Tomaste bastante agua, pero intenta alcanzar el objetivo diario")
+        return (2, "¡Muy bien! Tomaste bastante agua, intenta llegar a 8 vasos")
     default:
-        return (3, "¡Excelente! alcanzaste el objetivo diario de 8 vasos")
+        return (3, "¡Excelente! Alcanzaste el objetivo diario de 8 vasos")
     }
 }
 
 struct WaterView: View {
-    // Para poder regresar a la pantalla anterior (Inicio)
+    
     @Environment(\.dismiss) var dismiss
-    
-    //Crear una instancia del ViewModel
     @StateObject var waterModel = WaterModel()
-    
+
     var body: some View {
         ZStack {
-            backgroundView //Fondo
-            
-            nutriniView //Nutrini
-            
-            objectsView //Latas y vasos
-            
-            textView //Vidas y vasos tomados
+            backgroundView
+            nutriniView
+            objectsView
+            textView
             
             if waterModel.isGameOver {
                 gameOverOverlay
             }
         }
-        .onAppear {
-            waterModel.startGame()
-        }
-        .onDisappear {
-            //Cuando desaparece se detiene el juego
-            waterModel.stopGame()
-        }
-        .gesture (
+        .onAppear { waterModel.startGame() }
+        .onDisappear { waterModel.stopGame() }
+        .gesture(
             DragGesture(minimumDistance: 0)
-                .onChanged{ value in
+                .onChanged { value in
                     waterModel.nutriniX = value.location.x
                 }
         )
         .ignoresSafeArea()
     }
-    
+
+    // MARK: - TEXTOS SUPERIORES
+
     var textView: some View {
-        HStack {
-            Spacer() // Empuja todo hacia la derecha
-            
-            VStack() {
-                Text("Vidas: \(waterModel.lives)")
-                    .font(.custom("CherryBombOne-Regular", size: 32))
-                    .foregroundColor(.white)
-                    .padding(.top, 30)
-                    .padding(.bottom, 0)
-                    .frame(maxWidth: .infinity, alignment: .trailing)
+            HStack {
+                Spacer() // Empuja todo hacia la derecha
                 
-                Text("Vasos tomados: \(waterModel.vasosTomados)")
-                    .font(.custom("CherryBombOne-Regular", size: 32))
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity, alignment: .trailing)
-                
-                Spacer()
+                VStack() {
+                    Text("Vidas: \(waterModel.lives)")
+                        .font(.custom("CherryBombOne-Regular", size: 32))
+                        .foregroundColor(.white)
+                        .padding(.top, 30)
+                        .padding(.bottom, 0)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                    
+                    Text("Vasos tomados: \(waterModel.vasosTomados)")
+                        .font(.custom("CherryBombOne-Regular", size: 32))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                    
+                    Spacer()
+                }
+                .padding(.trailing, 30)
             }
-            .padding(.trailing, 30)
+            .padding()
         }
-        .padding()
-    }
-    
+
+    // MARK: - FONDO
+
     var backgroundView: some View {
         Image("fondoWater")
             .resizable()
             .scaledToFill()
             .ignoresSafeArea()
-        
     }
-    
+
+    // MARK: - OBJETOS (VASOS Y LATAS)
+
     var objectsView: some View {
         ZStack {
             ForEach(waterModel.objects) { object in
-                if (object.visible) {
-                    if object.refresco == true {
+                if object.visible {
+                    if object.refresco {
                         Image("lata_icon")
                             .resizable()
                             .frame(width: object.width, height: object.height)
-                            .position(
-                                x: object.xPos,
-                                y: object.yPos)
-                    }
-                    else {
+                            .position(x: object.xPos, y: object.yPos)
+                    } else {
                         Image("vaso_icon")
                             .resizable()
                             .frame(width: object.width, height: object.height)
-                            .position(
-                                x: object.xPos,
-                                y: object.yPos)
+                            .position(x: object.xPos, y: object.yPos)
                     }
                 }
             }
-            
         }
     }
-    
+
+    // MARK: - NUTRINI
+
     var nutriniView: some View {
         Image("mascota_icon")
             .resizable()
@@ -126,38 +112,54 @@ struct WaterView: View {
                    height: waterModel.nutriniHeight)
             .position(
                 x: waterModel.nutriniX,
-                y: waterModel.nutriniY)
+                y: waterModel.nutriniY
+            )
     }
-    
+
+    // MARK: - POPUP FINAL
+
     var gameOverOverlay: some View {
-        let result = getGameResult()
-        
+        let result = getGameResult(vasos: waterModel.vasosTomados)
+
         return ZStack {
-            Color.black.opacity(0.4)
-                .ignoresSafeArea()
+            Color.black.opacity(0.4).ignoresSafeArea()
+
             VStack(spacing: 16) {
-                Text("Resultado")
-                    .font(.custom("CherryBombOne-Regular", size: 30))
-                    .foregroundColor(.black)
-                
-                HStack(spacing: 8) {
-                    ForEach(0..<result.stars, id: \.self) { _ in
-                        Image(systemName: "star.fill")
-                            .font(.largeTitle)
-                            .foregroundColor(
-                                Color(uiColor: UIColor(red: 255/255, green: 198/255, blue: 0/255, alpha: 1.0))
-                            )
+
+                // TÍTULO SOLO SI GANA ESTRELLAS (igual que comida)
+                if result.stars > 0 {
+                    Text("Resultado")
+                        .font(.custom("CherryBombOne-Regular", size: 30))
+                        .foregroundColor(.black)
+
+                    // ESTRELLAS IGUALES QUE EN COMIDA
+                    HStack(spacing: 8) {
+                        ForEach(0..<result.stars, id: \.self) { _ in
+                            Image(systemName: "star.fill")
+                                .font(.largeTitle)
+                                .foregroundColor(
+                                    Color(uiColor: UIColor(
+                                        red: 255/255,
+                                        green: 198/255,
+                                        blue: 0/255,
+                                        alpha: 1.0
+                                    ))
+                                )
+                        }
                     }
                 }
+
                 Text(result.message)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
                     .font(.custom("CherryBombOne-Regular", size: 20))
                     .foregroundColor(.black)
-                
+
+                // BOTONES
                 HStack(spacing: 16) {
+
                     Button("Inicio") {
-                        dismiss()   // vuelve a ContentView (pantalla anterior)
+                        dismiss()
                     }
                     .font(.custom("CherryBombOne-Regular", size: 20))
                     .padding(.horizontal, 16)
@@ -165,7 +167,7 @@ struct WaterView: View {
                     .background(Color.gray.opacity(0.2))
                     .foregroundColor(.black)
                     .cornerRadius(10)
-                    
+
                     Button("Volver a jugar") {
                         waterModel.restartGame()
                     }
@@ -175,6 +177,7 @@ struct WaterView: View {
                     .background(Color(red: 80/255, green: 151/255, blue: 29/255))
                     .foregroundColor(.white)
                     .cornerRadius(10)
+
                 }
             }
             .padding()
@@ -185,6 +188,7 @@ struct WaterView: View {
         }
     }
 }
+
 #Preview {
     WaterView()
 }
