@@ -7,6 +7,10 @@ struct ContentView: View {
     @AppStorage("foodStars") private var foodStars: Int = 0
     @AppStorage("foodStarsDate") private var foodStarsDate: String = ""
     
+    // Progreso diario del juego de agua
+    @AppStorage("waterStars") private var waterStars: Int = 0
+    @AppStorage("waterStarsDate") private var waterStarsDate: String = ""
+    
     // Progreso (0.25, 0.5, 0.75, 1.0) según estrellas
     private var foodProgress: Double {
         switch foodStars {
@@ -30,6 +34,31 @@ struct ContentView: View {
             return .red
         }
     }
+    
+    // Progreso (0.25, 0.5, 0.75, 1.0) según estrellas de agua
+    private var waterProgress: Double {
+        switch waterStars {
+        case 3: return 1.0
+        case 2: return 0.75
+        case 1: return 0.5
+        default: return 0.25    // no ha jugado o 0 estrellas
+        }
+    }
+
+    // Color según estrellas de agua
+    private var waterColor: Color {
+        switch waterStars {
+        case 3:
+            return Color(red: 80/255, green: 151/255, blue: 29/255) // verde
+        case 2:
+            return .yellow
+        case 1:
+            return .orange
+        default:
+            return .red
+        }
+    }
+
     
     var body: some View {
         NavigationStack {
@@ -67,14 +96,14 @@ struct ContentView: View {
                         }
                         
                         NavigationLink(destination: WaterView()) {
-                            // base 25% rojo
                             MenuButton(
                                 iconName: "agua_icon",
                                 label: "Agua",
-                                progress: 0.25,
-                                progressColor: .red
+                                progress: waterProgress,
+                                progressColor: waterColor
                             )
                         }
+
                         
                         NavigationLink(destination: ExerciseView()) {
                             // Por ahora, base 25% rojo
@@ -111,6 +140,7 @@ struct ContentView: View {
         }
         .onAppear {
             resetFoodProgressIfNeeded()
+            resetWaterProgressIfNeeded()
         }
     }
     
@@ -125,6 +155,19 @@ struct ContentView: View {
             foodStarsDate = today  // marca el día actual
         }
     }
+    
+    // Resetea el progreso de agua si cambió el día
+    private func resetWaterProgressIfNeeded() {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        let today = formatter.string(from: Date())
+        
+        if waterStarsDate != today {
+            waterStars = 0          // vuelve al estado base → 25% rojo
+            waterStarsDate = today  // marca el día actual
+        }
+    }
+
 }
 
 struct MenuButton: View {

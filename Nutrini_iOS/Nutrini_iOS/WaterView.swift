@@ -22,6 +22,9 @@ struct WaterView: View {
     
     @Environment(\.dismiss) var dismiss
     @StateObject var waterModel = WaterModel()
+    
+    @AppStorage("waterStars") private var waterStars: Int = 0
+    @AppStorage("waterStarsDate") private var waterStarsDate: String = ""
 
     var body: some View {
         ZStack {
@@ -45,6 +48,11 @@ struct WaterView: View {
         .ignoresSafeArea()
     }
 
+    
+    
+    
+    
+    
     // MARK: - TEXTOS SUPERIORES
 
     var textView: some View {
@@ -59,7 +67,7 @@ struct WaterView: View {
                         .padding(.bottom, 0)
                         .frame(maxWidth: .infinity, alignment: .trailing)
                     
-                    Text("Vasos tomados: \(waterModel.vasosTomados)")
+                    Text("Vasos: \(waterModel.vasosTomados)")
                         .font(.custom("CherryBombOne-Regular", size: 32))
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity, alignment: .trailing)
@@ -186,7 +194,20 @@ struct WaterView: View {
             .shadow(radius: 10)
             .padding(.horizontal, 40)
         }
+        .onAppear {
+                saveWaterStars(stars: result.stars)
+        }
     }
+    
+    private func saveWaterStars(stars: Int) {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        let today = formatter.string(from: Date())
+        
+        waterStars = stars
+        waterStarsDate = today
+    }
+
 }
 
 #Preview {
