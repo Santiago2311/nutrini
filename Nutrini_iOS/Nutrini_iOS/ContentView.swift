@@ -17,6 +17,7 @@ struct ContentView: View {
                     
 
                     Spacer()
+                    Spacer()
                     
                     // Mascota en el centro
                     Image("mascota_icon")
@@ -27,7 +28,7 @@ struct ContentView: View {
                     
                     Spacer()
                     
-                    // HStack inferior SIN closet
+                    // HStack inferior
                     HStack(spacing: 10) {
                         NavigationLink(destination: FoodView()) {
                             MenuButton(iconName: "comida_icon", label: "Comida")
@@ -46,24 +47,19 @@ struct ContentView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 
-                // Botón de closet en esquina superior derecha
+                // Logo de la organizacion
                 VStack {
                     HStack {
-                        Spacer()
-                        NavigationLink(destination: ClosetView()) {
                             VStack {
-                                Image("compras_icon")
+                                Image("logo")
                                     .resizable()
                                     .scaledToFit()
-                                    .frame(height: 70)
+                                    .frame(height: 75)
                                 
-                                Text("Tienda")
-                                    .font(.custom("CherryBombOne-Regular", size: 24))
-                                    .foregroundColor(.white)
                             }
-                            .padding(.trailing, 15)
-                            .padding(.top, 5)
-                        }
+                            .padding(.leading, 30)
+                        
+                        Spacer()
                     }
                     Spacer()
                 }
