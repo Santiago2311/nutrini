@@ -9,6 +9,9 @@ struct FoodView: View {
     @State private var popupMessage: String = ""
     @State private var starCount: Int = 0
     
+    // guarda las estrellas de comida para usar en ContentView
+    @AppStorage("foodStars") private var foodStars: Int = 0
+    
     // Para poder regresar a la pantalla anterior (Inicio)
     @Environment(\.dismiss) private var dismiss
     
@@ -289,6 +292,7 @@ struct FoodView: View {
         }
         
         starCount = stars
+        foodStars = stars          // manda el resultado a ContentView
         popupMessage = message
         showPopup = true
     }

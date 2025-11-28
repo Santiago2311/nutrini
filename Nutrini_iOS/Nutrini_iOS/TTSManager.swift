@@ -13,7 +13,7 @@ class TTSManager: ObservableObject {
 
     private let synthesizer = AVSpeechSynthesizer()
     
-    @Published var selectedLanguage: String = "es-ES"
+    @Published var selectedLanguage: String = "es-MX"  // español de México
     @Published var textToSpeech: String = "Hola soy Nutrini"
     
     func speak () {
@@ -21,7 +21,7 @@ class TTSManager: ObservableObject {
         utterance.voice = AVSpeechSynthesisVoice(language: selectedLanguage)
         
         utterance.pitchMultiplier = 1.4   // eleva el tono
-        utterance.rate = 0.45             // velocidad más lenta, para que se entienda bien
+        utterance.rate = 0.50             // velocidad más lenta, para que se entienda bien
         utterance.postUtteranceDelay = 0.2  // pequeña pausa después de hablar
         synthesizer.speak(utterance)
     }
