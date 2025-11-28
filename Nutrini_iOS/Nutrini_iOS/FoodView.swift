@@ -28,6 +28,7 @@ struct FoodView: View {
                     .frame(height: 60)
 
                 
+                
                 VStack {
                     ScrollView(.horizontal, showsIndicators: false) {
                         VStack(spacing: 0) {
@@ -89,7 +90,7 @@ struct FoodView: View {
                         ForEach(droppedItems) { item in
                             Image(item.imageName)
                                 .resizable()
-                                .frame(width: 60, height: 60)
+                                .frame(width: 90, height: 90)
                                 .position(item.position)
                                 .opacity(draggingItem?.droppedId == item.id ? 0.3 : 1.0)
                                 .gesture(

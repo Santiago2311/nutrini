@@ -41,6 +41,7 @@ struct ContentView: View {
                 
                 VStack {
                     
+                    
                     Spacer()
                     Spacer()
                     
@@ -104,6 +105,7 @@ struct ContentView: View {
                         Spacer()
                     }
                     Spacer()
+                    
                 }
             }
         }
