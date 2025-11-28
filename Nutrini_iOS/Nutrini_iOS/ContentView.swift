@@ -2,6 +2,8 @@
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject var tts = TTSManager()
+    
     var body: some View {
         NavigationStack {
             ZStack {
@@ -18,6 +20,10 @@ struct ContentView: View {
                     
                     // Mascota en el centro
                     Image("mascota_icon")
+                        .onTapGesture {
+                            tts.textToSpeech = "¡Hola, soy tu amigo Nutrini!"
+                            tts.speak()
+                        }
                     
                     Spacer()
                     
@@ -67,6 +73,7 @@ struct ContentView: View {
 }
 
 struct MenuButton: View {
+    @StateObject var tts = TTSManager()
     let iconName: String
     let label: String
 
@@ -103,6 +110,10 @@ struct MenuButton: View {
             
         }
         .frame(maxWidth: .infinity)
+        .onLongPressGesture {
+            tts.textToSpeech = label
+            tts.speak()
+        }
     }
 }
 

@@ -19,6 +19,10 @@ class TTSManager: ObservableObject {
     func speak () {
         let utterance = AVSpeechUtterance(string: textToSpeech)
         utterance.voice = AVSpeechSynthesisVoice(language: selectedLanguage)
+        
+        utterance.pitchMultiplier = 1.4   // eleva el tono
+        utterance.rate = 0.45             // velocidad más lenta, para que se entienda bien
+        utterance.postUtteranceDelay = 0.2  // pequeña pausa después de hablar
         synthesizer.speak(utterance)
     }
 }

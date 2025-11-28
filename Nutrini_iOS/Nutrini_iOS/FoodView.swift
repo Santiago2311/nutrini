@@ -322,6 +322,7 @@ struct FoodDraggableItem: View {
     let label: String
     @Binding var droppedItems: [DroppedFood]
     @Binding var draggingItem: DraggingItem?
+    @StateObject var tts = TTSManager()
 
     var body: some View {
         VStack {
@@ -357,6 +358,13 @@ struct FoodDraggableItem: View {
                             }
                             
                             draggingItem = nil
+                        }
+                )
+                .simultaneousGesture(
+                    TapGesture()
+                        .onEnded { value in
+                            tts.textToSpeech = label
+                            tts.speak()
                         }
                 )
 

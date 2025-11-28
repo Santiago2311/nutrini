@@ -7,7 +7,26 @@
 
 import SwiftUI
 
+private func getGameResult() -> (stars: Int, message: String) {
+    @StateObject var waterModel = WaterModel()
+    let vasos = waterModel.vasosTomados
+        
+    switch vasos {
+    case 0...2:
+        return (0, "Buen intento. Sigue practicando")
+    case 3...5:
+        return (1, "Buen inicio, pero aún necesitas tomar un poco mas de agua")
+    case 6...7:
+        return (2, "¡Muy bien! Tomaste bastante agua, pero intenta alcanzar el objetivo diario")
+    default:
+        return (3, "¡Excelente! alcanzaste el objetivo diario de 8 vasos")
+    }
+}
+
 struct WaterView: View {
+    // Para poder regresar a la pantalla anterior (Inicio)
+    @Environment(\.dismiss) var dismiss
+    
     //Crear una instancia del ViewModel
     @StateObject var waterModel = WaterModel()
     
@@ -52,7 +71,7 @@ struct WaterView: View {
                     .padding(.top, 30)
                     .padding(.bottom, 0)
                     .frame(maxWidth: .infinity, alignment: .trailing)
-
+                
                 Text("Vasos tomados: \(waterModel.vasosTomados)")
                     .font(.custom("CherryBombOne-Regular", size: 32))
                     .foregroundColor(.white)
@@ -111,30 +130,61 @@ struct WaterView: View {
     }
     
     var gameOverOverlay: some View {
-        ZStack {
-            Color.black.opacity(0.5)
+        let result = getGameResult()
+        
+        return ZStack {
+            Color.black.opacity(0.4)
                 .ignoresSafeArea()
-            
-            VStack(spacing: 20) {
-                Text("Perdiste")
-                    .font(.system(size: 60, weight: .bold))
-                    .foregroundColor(.white)
+            VStack(spacing: 16) {
+                Text("Resultado")
+                    .font(.custom("CherryBombOne-Regular", size: 30))
+                    .foregroundColor(.black)
                 
-                Button(action: {
-                    waterModel.restartGame()
-                }) {
-                    Text("Reintertar")
-                        .font(.system(size: 30, weight: .semibold))
-                        .foregroundColor(.white)
-                        .padding(.vertical, 15)
-                        .background(Color.blue)
-                        .cornerRadius(15)
+                HStack(spacing: 8) {
+                    ForEach(0..<result.stars, id: \.self) { _ in
+                        Image(systemName: "star.fill")
+                            .font(.largeTitle)
+                            .foregroundColor(
+                                Color(uiColor: UIColor(red: 255/255, green: 198/255, blue: 0/255, alpha: 1.0))
+                            )
+                    }
+                }
+                Text(result.message)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+                    .font(.custom("CherryBombOne-Regular", size: 20))
+                    .foregroundColor(.black)
+                
+                HStack(spacing: 16) {
+                    Button("Inicio") {
+                        dismiss()   // vuelve a ContentView (pantalla anterior)
+                    }
+                    .font(.custom("CherryBombOne-Regular", size: 20))
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(Color.gray.opacity(0.2))
+                    .foregroundColor(.black)
+                    .cornerRadius(10)
+                    
+                    Button("Volver a jugar") {
+                        waterModel.restartGame()
+                    }
+                    .font(.custom("CherryBombOne-Regular", size: 20))
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(Color(red: 80/255, green: 151/255, blue: 29/255))
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
                 }
             }
+            .padding()
+            .background(Color.white)
+            .cornerRadius(20)
+            .shadow(radius: 10)
+            .padding(.horizontal, 40)
         }
     }
 }
-
 #Preview {
     WaterView()
 }

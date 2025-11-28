@@ -39,7 +39,7 @@ class WaterModel: ObservableObject {
     let floorY: CGFloat = 430             // Medida del suelo
     let gravity: CGFloat = 0.4           // Fuerza de gravedad (+ = cae más rápido)
     let speedIncreaseRate: CGFloat = 0.001  // Cuánto acelera por frame
-    let maxSpeed: CGFloat = 8.0             // Velocidad máxima
+    let maxSpeed: CGFloat = 12.0             // Velocidad máxima
     
     //Otras variables?
     var maxNumObjects = 1 //Numero de objetos que pueden exister la vez
@@ -140,7 +140,7 @@ class WaterModel: ObservableObject {
     
     func generateObjects() {
         var currVasos = objects.count
-        if currVasos < maxNumObjects && framesSinceLastObject > 20{
+        if currVasos < maxNumObjects && framesSinceLastObject > 30{
             //Generar espacio en x
             var xPos = CGFloat.random(in: 30...360)
             while abs(lastObjectX - xPos) < 10 {

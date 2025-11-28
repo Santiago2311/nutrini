@@ -8,7 +8,10 @@
 import SwiftUI
 
 struct ExerciseView: View {
-    //Crear una instancia del ViewModel t 
+    // Para poder regresar a la pantalla anterior (Inicio)
+    @Environment(\.dismiss) var dismiss
+    
+    //Crear una instancia del ViewModel t
     @StateObject var exerciseModel = ExerciseModel()
     
     var body: some View {
@@ -115,6 +118,7 @@ struct ExerciseView: View {
     }
     
     var gameOverOverlay: some View {
+        
         ZStack {
             Color.black.opacity(0.5)
                 .ignoresSafeArea()
@@ -127,7 +131,18 @@ struct ExerciseView: View {
                 Button(action: {
                     exerciseModel.restartGame()
                 }) {
-                    Text("Reintertar")
+                    Text("Reintentar")
+                        .font(.system(size: 30, weight: .semibold))
+                        .foregroundColor(.white)
+                        .padding(.vertical, 15)
+                        .background(Color.blue)
+                        .cornerRadius(15)
+                }
+                
+                Button(action: {
+                    dismiss()
+                }) {
+                    Text("Regresar")
                         .font(.system(size: 30, weight: .semibold))
                         .foregroundColor(.white)
                         .padding(.vertical, 15)
