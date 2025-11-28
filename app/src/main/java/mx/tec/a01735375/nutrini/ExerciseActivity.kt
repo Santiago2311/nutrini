@@ -10,9 +10,10 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
@@ -23,6 +24,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -79,6 +81,13 @@ fun ExerciseView(navController: NavController) {
     val bounceAnimation = remember { Animatable(0f) }
     val coroutineScope = rememberCoroutineScope()
 
+    val stars = when {
+        score >= 30 -> 3
+        score >= 20 -> 2
+        score >= 10 -> 1
+        else -> 0
+    }
+
     // Countdown de 3 segundos al inicio
     LaunchedEffect(countdown) {
         if (countdown > 0 && !gameStarted) {
@@ -121,7 +130,7 @@ fun ExerciseView(navController: NavController) {
         }
     }
 
-    // ---------------- LOOP DEL JUEGO ----------------
+    // LOOP DEL JUEGO
     LaunchedEffect(gameState, gameStarted) {
         if (gameState == GameState.PLAYING && gameStarted) {
             var lastFrameTime = 0L
@@ -194,7 +203,6 @@ fun ExerciseView(navController: NavController) {
                         isOnGround = false
                     }
 
-                    // Game Over
                     if (petY > 500f) {
                         gameState = GameState.GAME_OVER
                         showDialog = true
@@ -213,16 +221,18 @@ fun ExerciseView(navController: NavController) {
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF2D72DA))
-            .clickable(
-                enabled = gameState == GameState.PLAYING && gameStarted,
-                indication = null,
-                interactionSource = remember { MutableInteractionSource() }
-            ) {
-                if (isOnGround && !isJumping) {
-                    isJumping = true
-                    isOnGround = false
-                    petVelocityY = -17f
-                }
+            .pointerInput(gameState, gameStarted) {
+                detectTapGestures(
+                    onPress = {
+                        if (gameState == GameState.PLAYING && gameStarted) {
+                            if (isOnGround && !isJumping) {
+                                isJumping = true
+                                isOnGround = false
+                                petVelocityY = -17f
+                            }
+                        }
+                    }
+                )
             }
     ) {
 
@@ -245,16 +255,31 @@ fun ExerciseView(navController: NavController) {
         }
 
         // Marcador de puntos
-        Text(
-            text = "Puntuación: $score",
-            color = Color.Black,
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
-            fontFamily = cherryFamily,
+        Column(
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(16.dp)
-        )
+                .padding(16.dp),
+            horizontalAlignment = Alignment.End
+        ) {
+            Text(
+                text = "Puntuación: $score",
+                color = Color.Black,
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = cherryFamily
+            )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                modifier = Modifier.padding(top = 8.dp)
+            ) {
+                repeat(3) { index ->
+                    Text(
+                        text = if (index < stars) "⭐" else "☆",
+                        fontSize = 32.sp
+                    )
+                }
+            }
+        }
 
         // Countdown al inicio
         if (!gameStarted && countdown > 0) {
@@ -319,10 +344,29 @@ fun ExerciseView(navController: NavController) {
                     Text("¡Juego Terminado!", fontFamily = cherryFamily, fontSize = 28.sp)
                 },
                 text = {
-                    Text(
-                        "Plataformas saltadas: $score\n\n¡Intenta superar tu récord!",
-                        fontSize = 18.sp
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            "Plataformas saltadas: $score",
+                            fontSize = 20.sp
+                        )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.padding(vertical = 12.dp)
+                        ) {
+                            repeat(3) { index ->
+                                Text(
+                                    text = if (index < stars) "⭐" else "☆",
+                                    fontSize = 40.sp
+                                )
+                            }
+                        }
+                        Text(
+                            "¡Intenta superar tu récord!",
+                            fontSize = 20.sp
+                        )
+                    }
                 },
                 confirmButton = {
                     // Boton de reinicio
