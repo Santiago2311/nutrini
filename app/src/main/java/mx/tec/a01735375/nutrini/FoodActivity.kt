@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -56,7 +57,7 @@ data class PlacedFood(
 )
 
 @Composable
-fun FoodView(navController: NavController) {
+fun FoodView(navController: NavController, viewModel: ScoresViewModel = viewModel()) {
     LockScreenOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
 
     var foodsOnPlate by remember { mutableStateOf<List<PlacedFood>>(emptyList()) }
@@ -203,6 +204,11 @@ fun FoodView(navController: NavController) {
                         isWinner = result.first
                         dialogMessage = result.second
                         showDialog = true
+                        if (isWinner) {
+                            viewModel.saveScore(1, 1f)
+                        } else {
+                            viewModel.saveScore(1, 0.05f)
+                        }
                     },
                     modifier = Modifier
                         .width(140.dp)
@@ -360,7 +366,7 @@ fun DraggableFoodOption(
                             val down = awaitFirstDown()
 
                             longPressJob = coroutineScope.launch {
-                                delay(300L)
+                                delay(100L)
                                 isLongPressActive = true
                             }
 
@@ -489,6 +495,7 @@ fun isInsidePlate(position: Offset, plateBounds: Rect): Boolean {
 
     return distance <= radius
 }
+
 
 fun checkBalancedPlate(foodsOnPlate: List<PlacedFood>): Pair<Boolean, String> {
     val categories = foodsOnPlate.map { it.food.category }.toSet()
