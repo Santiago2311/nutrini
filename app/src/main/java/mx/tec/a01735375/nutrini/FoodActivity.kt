@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -258,25 +259,60 @@ fun FoodView(navController: NavController, viewModel: ScoresViewModel = viewMode
             AlertDialog(
                 onDismissRequest = { showDialog = false },
                 title = {
-                    Text(
-                        text = if (isWinner) "¡Felicidades! 🎉" else "¡Intenta de nuevo!",
-                        fontFamily = cherryFamily,
-                        fontSize = 24.sp
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = if (isWinner) "¡Felicidades! 🎉" else "¡Intenta de nuevo!",
+                            fontFamily = cherryFamily,
+                            fontSize = 24.sp,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 },
                 text = {
-                    Text(
-                        text = dialogMessage,
-                        fontSize = 18.sp
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        // Calcular estrellas
+                        val categoriesFulfilled = foodsOnPlate.map { it.food.category }.toSet().size
+                        val stars = when {
+                            categoriesFulfilled == 5 -> 3
+                            categoriesFulfilled >= 3 -> 2
+                            categoriesFulfilled >= 1 -> 1
+                            else -> 0
+                        }
+
+                        // Mostrar íconos de estrellas
+                        if (stars > 0) {
+                            Row(
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier.padding(bottom = 16.dp)
+                            ) {
+                                repeat(stars) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Star,
+                                        contentDescription = "Estrella",
+                                        tint = Color(0xFFFFD700),
+                                        modifier = Modifier.size(64.dp)
+                                    )
+                                }
+                            }
+                        }
+
+                        Text(
+                            text = dialogMessage.replace(Regex("⭐+\\n*"), ""), // Eliminar estrellas del texto
+                            fontSize = 18.sp,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 },
                 confirmButton = {
                     Button(
                         onClick = {
                             showDialog = false
-                            if (!isWinner) {
-                                foodsOnPlate = emptyList()
-                            }
                         }
                     ) {
                         Text(if (isWinner) "¡Genial!" else "Reintentar")
@@ -446,7 +482,7 @@ fun DraggableFoodOption(
             Text(
                 text = food.label,
                 color = Color.White,
-                fontSize = 14.sp,
+                fontSize = 22.sp,
                 fontWeight = FontWeight.Normal,
                 fontFamily = cherryFamily,
                 textAlign = TextAlign.Center,
@@ -465,7 +501,7 @@ fun getFoodList(): List<Food> {
         Food("brocoli", R.drawable.brocoli, "Brócoli", FoodCategory.fruits_vegetables),
         Food("cuerno", R.drawable.cuerno, "Cuerno", FoodCategory.cereals),
         Food("frijoles_negros", R.drawable.frijoles_negros, "Frijoles", FoodCategory.legumes),
-        Food("garbanzos", R.drawable.garbanzos, "Garbanzos", FoodCategory.legumes),
+        Food("garbanzos", R.drawable.garbanzos, "Garbanzo", FoodCategory.legumes),
         Food("habas", R.drawable.habas, "Habas", FoodCategory.legumes),
         Food("huevo", R.drawable.huevo, "Huevo", FoodCategory.animal_origin),
         Food("lentejas", R.drawable.lentejas, "Lentejas", FoodCategory.legumes),
@@ -509,7 +545,7 @@ fun checkBalancedPlate(foodsOnPlate: List<PlacedFood>): Pair<Boolean, String> {
     val allCategories = hasProtein && hasCereals && hasFruits && hasLegumes && hasFats
 
     return if (allCategories) {
-        Pair(true, "¡Excelente! Tu plato tiene todos los grupos de alimentos: origen animal, cereales, frutas y vegetales, leguminosas y grasas saludables. ¡Está perfectamente balanceado!")
+        Pair(true, "¡Excelente!\n Tu plato tiene todos los grupos de alimentos: origen animal, cereales, frutas y vegetales, leguminosas y grasas saludables.\n ¡Está perfectamente balanceado!")
     } else {
         val missing = mutableListOf<String>()
         if (!hasProtein) missing.add("Origen animal")
@@ -518,6 +554,8 @@ fun checkBalancedPlate(foodsOnPlate: List<PlacedFood>): Pair<Boolean, String> {
         if (!hasLegumes) missing.add("Leguminosas")
         if (!hasFats) missing.add("Grasas saludables")
 
-        Pair(false, "Tu plato no está balanceado. ¡Intenta agregar otros alimentos!")
+        val missingText = missing.joinToString(", ")
+
+        Pair(false, "Tu plato no está balanceado. Faltan alimentos de \n$missingText.\n ¡Intenta agregar otros alimentos!")
     }
 }
