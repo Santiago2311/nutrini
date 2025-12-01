@@ -137,7 +137,7 @@ class WaterGameViewModel : ViewModel() {
 
                 if (dist < petHitboxWidthPx / 2f) {
                     collided = true
-                    if (item.isWater) score += 10
+                    if (item.isWater) score += 1
                     else {
                         lives--
                         if (lives <= 0) gameOver = true
@@ -180,7 +180,8 @@ class WaterGameViewModel : ViewModel() {
 @Composable
 fun WaterView(
     navController: NavController,
-    vm: WaterGameViewModel = viewModel()
+    vm: WaterGameViewModel = viewModel(),
+    viewModel: ScoresViewModel = viewModel()
 ) {
     LockScreenOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
 
@@ -299,6 +300,21 @@ fun WaterView(
             // GAME OVER OVERLAY
             // ---------------------------------------------
             if (vm.gameOver) {
+                val stars = when {
+                    vm.score >= 8 -> 3
+                    vm.score >= 5 -> 2
+                    vm.score >= 2 -> 1
+                    else -> 0
+                }
+                if (stars == 3) {
+                    viewModel.saveScore(2, 1f)
+                } else if (stars == 2){
+                    viewModel.saveScore(2, 0.75f)
+                } else if (stars == 1) {
+                    viewModel.saveScore(2, 0.5f)
+                } else {
+                    viewModel.saveScore(2, 0.25f)
+                }
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -328,12 +344,34 @@ fun WaterView(
     modifier: Modifier = Modifier,
     navController: NavController,
     score: Int,
-    lives: Int
+    lives: Int,
+    viewModel: ScoresViewModel = viewModel()
 ) {
+    var textColor = Color.White
+    if (score >= 8){
+        textColor = Color.Green
+    }
     Box(modifier = modifier) {
     // Back arrow
         IconButton(
-            onClick = { navController.navigate("MainView") },
+            onClick = {
+                navController.navigate("MainView")
+                val stars = when {
+                    score >= 8 -> 3
+                    score >= 5 -> 2
+                    score >= 2 -> 1
+                    else -> 0
+                }
+                if (stars == 3) {
+                    viewModel.saveScore(2, 1f)
+                } else if (stars == 2){
+                    viewModel.saveScore(2, 0.75f)
+                } else if (stars == 1) {
+                    viewModel.saveScore(2, 0.5f)
+                } else {
+                    viewModel.saveScore(2, 0.25f)
+                }
+                      },
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(top = 32.dp, start = 16.dp) ) {
@@ -351,15 +389,15 @@ fun WaterView(
                 .padding(top = 32.dp, end = 16.dp)
         ) {
             Text(
-                text = "Puntos: $score",
-                color = Color.White,
-                fontSize = 24.sp,
+                text = "Vasos: $score/8",
+                color = textColor,
+                fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = cherryFamily
             )
             Text( text = "Vidas: $lives",
                 color = Color.White,
-                fontSize = 24.sp,
+                fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = cherryFamily )
         }

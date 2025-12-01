@@ -30,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -49,7 +50,7 @@ enum class GameState {
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
-fun ExerciseView(navController: NavController) {
+fun ExerciseView(navController: NavController, viewModel: ScoresViewModel = viewModel()) {
     LockScreenOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE)
 
     var gameState by remember { mutableStateOf(GameState.PLAYING) }
@@ -86,6 +87,16 @@ fun ExerciseView(navController: NavController) {
         score >= 20 -> 2
         score >= 10 -> 1
         else -> 0
+    }
+
+    if (stars == 3) {
+        viewModel.saveScore(3, 1f)
+    } else if (stars == 2){
+        viewModel.saveScore(3, 0.75f)
+    } else if (stars == 1) {
+        viewModel.saveScore(3, 0.5f)
+    } else {
+        viewModel.saveScore(3, 0.25f)
     }
 
     // Countdown de 3 segundos al inicio

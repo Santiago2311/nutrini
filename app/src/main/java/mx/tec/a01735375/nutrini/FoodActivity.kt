@@ -205,11 +205,6 @@ fun FoodView(navController: NavController, viewModel: ScoresViewModel = viewMode
                         isWinner = result.first
                         dialogMessage = result.second
                         showDialog = true
-                        if (isWinner) {
-                            viewModel.saveScore(1, 1f)
-                        } else {
-                            viewModel.saveScore(1, 0.05f)
-                        }
                     },
                     modifier = Modifier
                         .width(140.dp)
@@ -283,6 +278,15 @@ fun FoodView(navController: NavController, viewModel: ScoresViewModel = viewMode
                             categoriesFulfilled >= 3 -> 2
                             categoriesFulfilled >= 1 -> 1
                             else -> 0
+                        }
+                        if (stars == 3) {
+                            viewModel.saveScore(1, 1f)
+                        } else if (stars == 2){
+                            viewModel.saveScore(1, 0.75f)
+                        } else if (stars == 1) {
+                            viewModel.saveScore(1, 0.5f)
+                        } else {
+                            viewModel.saveScore(1, 0.25f)
                         }
 
                         // Mostrar íconos de estrellas
