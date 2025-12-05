@@ -1,9 +1,4 @@
-//
 //  WaterView.swift
-//  Nutrini_iOS
-//
-//  Created by Administrador on 2025-09-21.
-//
 
 import SwiftUI
 
@@ -21,7 +16,8 @@ private func getGameResult(vasos: Int) -> (stars: Int, message: String) {
 struct WaterView: View {
     
     @Environment(\.dismiss) var dismiss
-    @StateObject var waterModel = WaterModel()
+    @StateObject private var waterModel = WaterModel()
+    @StateObject private var tts = TTSManager()
     
     @AppStorage("waterStars") private var waterStars: Int = 0
     @AppStorage("waterStarsDate") private var waterStarsDate: String = ""
@@ -37,8 +33,12 @@ struct WaterView: View {
                 gameOverOverlay
             }
         }
-        .onAppear { waterModel.startGame() }
-        .onDisappear { waterModel.stopGame() }
+        .onAppear {
+            waterModel.startGame()
+        }
+        .onDisappear {
+            waterModel.stopGame()
+        }
         .gesture(
             DragGesture(minimumDistance: 0)
                 .onChanged { value in
@@ -57,7 +57,6 @@ struct WaterView: View {
 
     var textView: some View {
             HStack {
-                Spacer() // Empuja todo hacia la derecha
                 
                 VStack() {
                     Text("Vidas: \(waterModel.lives)")
@@ -65,16 +64,27 @@ struct WaterView: View {
                         .foregroundColor(.white)
                         .padding(.top, 30)
                         .padding(.bottom, 0)
-                        .frame(maxWidth: .infinity, alignment: .trailing)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     
                     Text("Vasos: \(waterModel.vasosTomados)")
                         .font(.custom("CherryBombOne-Regular", size: 32))
                         .foregroundColor(.white)
-                        .frame(maxWidth: .infinity, alignment: .trailing)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     
                     Spacer()
                 }
-                .padding(.trailing, 30)
+                .padding(.leading, 30)
+                
+                Spacer()
+                
+                VStack {
+                    InstructionsButton(tts: tts, message: "Mueve a Nutrini para atrapar los vasos de agua y evita el refresco. Intenta alcanzar 8 vasos")
+                        .padding(.trailing, 30)
+                        .padding(.top, 30)
+                    
+                    Spacer()
+                }
+               
             }
             .padding()
         }
@@ -195,9 +205,11 @@ struct WaterView: View {
             .padding(.horizontal, 40)
         }
         .onAppear {
-                saveWaterStars(stars: result.stars)
+            saveWaterStars(stars: result.stars)
         }
     }
+    
+    // MARK: - FUNCIONES
     
     private func saveWaterStars(stars: Int) {
         let formatter = DateFormatter()
@@ -205,13 +217,35 @@ struct WaterView: View {
         let today = formatter.string(from: Date())
         
         waterStars = stars
-        
-        
-        
-        
         waterStarsDate = today
     }
 
+}
+
+// MARK: - COMPONENTE REUTILIZABLE PARA BOTÓN DE INSTRUCCIONES
+
+struct InstructionsButton: View {
+    @ObservedObject var tts: TTSManager
+    let message: String
+    
+    var body: some View {
+        Button(action: {
+            tts.textToSpeech = message
+            tts.speak()
+            
+        }) {
+            ZStack {
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: 50, height: 50)
+                
+                Text("?")
+                    .font(.custom("CherryBombOne-Regular", size: 28))
+                    .foregroundColor(Color(red: 45/255, green: 114/255, blue: 218/255))
+            }
+        }
+        .padding(.trailing, 20)
+    }
 }
 
 #Preview {

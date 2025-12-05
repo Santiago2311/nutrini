@@ -1,3 +1,5 @@
+///ContentView
+
 import SwiftUI
 
 struct ContentView: View {
@@ -146,7 +148,24 @@ struct ContentView: View {
                         .padding(.leading, 30)
                         
                         Spacer()
+                        
+                        Button(action: {
+                            tts.textToSpeech = "Juega y ayuda a Nutrini a mantenerse sano"
+                            tts.speak()
+                        }) {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.white)
+                                    .frame(width: 50, height: 50)
+                                
+                                Text("?")
+                                    .font(.custom("CherryBombOne-Regular", size: 28))
+                                    .foregroundColor(Color(red: 45/255, green: 114/255, blue: 218/255))
+                            }
+                        }
+                        .padding(.trailing, 30)
                     }
+                
                     Spacer()
                 }
             }
@@ -238,4 +257,3 @@ struct MenuButton: View {
 #Preview {
     ContentView()
 }
-

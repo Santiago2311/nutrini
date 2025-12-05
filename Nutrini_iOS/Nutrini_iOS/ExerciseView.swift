@@ -1,9 +1,4 @@
-//
 //  ExerciseView.swift
-//  Nutrini_iOS
-//
-//  Created by Alumno on 14/11/25.
-//
 
 import SwiftUI
 
@@ -26,13 +21,32 @@ struct ExerciseView: View {
     @Environment(\.dismiss) var dismiss
     
     //Crear una instancia del ViewModel
-    @StateObject var exerciseModel = ExerciseModel()
+    @StateObject private var exerciseModel = ExerciseModel()
+    @StateObject private var tts = TTSManager()
     
     var body: some View {
         ZStack {
-            backgroundView
-            platformsView
-            nutriniView
+            // Esta capa tiene el gesto de salto
+            ZStack {
+                backgroundView
+                platformsView
+                nutriniView
+            }
+            .gesture(
+                TapGesture()
+                    .onEnded { _ in
+                        if !exerciseModel.gameStarted {
+                            exerciseModel.startGame()
+                        } else if exerciseModel.isGameOver {
+                            exerciseModel.restartGame()
+                        } else {
+                            exerciseModel.jump()
+                        }
+                    }
+            )
+            
+            // Esta capa NO tiene el gesto de salto, solo el botón posicionado
+            instructionsButton
             
             if exerciseModel.isGameOver {
                 gameOverOverlay
@@ -46,18 +60,6 @@ struct ExerciseView: View {
             exerciseModel.stopGame()
             OrientationManager.lockOrientation(.portrait) // 🔓 restaurar vertical
         }
-        .gesture(
-            TapGesture()
-                .onEnded { _ in
-                    if !exerciseModel.gameStarted {
-                        exerciseModel.startGame()
-                    } else if exerciseModel.isGameOver {
-                        exerciseModel.restartGame()
-                    } else {
-                        exerciseModel.jump()
-                    }
-                }
-        )
         .ignoresSafeArea()
     }
     
@@ -118,6 +120,27 @@ struct ExerciseView: View {
             .position(
                 x: exerciseModel.nutriniX,
                 y: exerciseModel.nutriniY)
+    }
+    
+    var instructionsButton: some View {
+        GeometryReader { geometry in
+            Button(action: {
+                tts.textToSpeech = "Toca la pantalla para hacer que Nutrini salte de plataforma en plataforma. Intenta mantenerlo corriendo por 30 segundos"
+                tts.speak()
+            }) {
+                ZStack {
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 50, height: 50)
+                    
+                    Text("?")
+                        .font(.custom("CherryBombOne-Regular", size: 28))
+                        .foregroundColor(Color(red: 45/255, green: 114/255, blue: 218/255))
+                }
+            }
+            .position(x: geometry.size.width - 55, y: 55)
+        }
+        .allowsHitTesting(true)
     }
     
     var gameOverOverlay: some View {
@@ -187,6 +210,8 @@ struct ExerciseView: View {
         }
     }
     
+    // MARK: - FUNCIONES
+    
     private func saveExerciseStars(stars: Int) {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
@@ -200,4 +225,3 @@ struct ExerciseView: View {
 #Preview(traits: .landscapeLeft) {
     ExerciseView()
 }
-

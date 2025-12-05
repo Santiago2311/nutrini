@@ -1,9 +1,4 @@
-//
 //  ExerciseModel.swift
-//  Nutrini_iOS
-//
-//  Created by Alumno on 14/11/25.
-//
 
 import SwiftUI
 import Combine

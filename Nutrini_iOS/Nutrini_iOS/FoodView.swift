@@ -1,3 +1,5 @@
+//FoodView
+
 import SwiftUI
 
 struct FoodView: View {
@@ -15,6 +17,8 @@ struct FoodView: View {
     // Para poder regresar a la pantalla anterior (Inicio)
     @Environment(\.dismiss) private var dismiss
     
+    @StateObject var tts = TTSManager()
+    
     var body: some View {
 
         ZStack(alignment: .topLeading) {
@@ -25,7 +29,7 @@ struct FoodView: View {
             VStack(spacing: 0) {
                 
                 Color.clear
-                    .frame(height: 60)
+                    .frame(height: 70)
 
                 
                 
@@ -33,7 +37,7 @@ struct FoodView: View {
                     ScrollView(.horizontal, showsIndicators: false) {
                         VStack(spacing: 0) {
                             
-                            Spacer().frame(height: 16)
+                            Spacer().frame(height: 70)
                             
                             HStack(spacing: 40) {
                                 FoodDraggableItem(imageName: "origen_animal/res", label: "Res", droppedItems: $droppedItems, draggingItem: $draggingItem)
@@ -151,14 +155,48 @@ struct FoodView: View {
             }
             .ignoresSafeArea(edges: .top)
             
-            // Botón flotante
-            Button(action: {}) {
-                Image(systemName: "chevron.left")
-                    .font(.title2)
-                    .foregroundColor(.white)
-                    .padding()
+            // Botón de regresar (izquierda)
+            VStack {
+                HStack {
+                    Button(action: {}) {
+                        Image(systemName: "chevron.left")
+                            .font(.title2)
+                            .foregroundColor(.white)
+                            .padding()
+                    }
+                    
+                    Spacer()
+                    
+                    
+                }
+                .padding(.top, 50)
+                Spacer()
             }
-            .padding(.top, 50)
+            
+            // Botón de instrucciones (derecha)
+            VStack {
+                HStack {
+                    Spacer()
+                    
+                    Button(action: {
+                        tts.textToSpeech = "Arrastra los alimentos al plato para crear una comida balanceada. Intenta incluir alimentos de todas las categorías"
+                        tts.speak()
+                    }) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.white)
+                                .frame(width: 50, height: 50)
+                            
+                            Text("?")
+                                .font(.custom("CherryBombOne-Regular", size: 28))
+                                .foregroundColor(Color(red: 45/255, green: 114/255, blue: 218/255))
+                        }
+                    }
+                    .padding(.trailing, 15)
+                }
+                
+                Spacer()
+            }
 
             
             // Item siendo arrastrado (desde menú o desde plato)

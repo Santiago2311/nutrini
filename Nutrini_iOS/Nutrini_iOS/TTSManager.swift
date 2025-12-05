@@ -1,9 +1,5 @@
-      //
+
 //  TTSManager.swift
-//  Nutrini_iOS
-//
-//  Created by Alumno on 19/11/25.
-//
 
 import Foundation
 import AVFoundation

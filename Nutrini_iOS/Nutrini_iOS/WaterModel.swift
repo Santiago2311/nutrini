@@ -1,9 +1,5 @@
 //
 //  WaterModel.swift
-//  Nutrini_iOS
-//
-//  Created by Oriana I. Cañizales Hdz. on 17/11/25.
-//
 
 import SwiftUI
 import Combine
