@@ -97,7 +97,7 @@ struct FoodView: View {
                                 .frame(width: 90, height: 90)
                                 .position(item.position)
                                 .opacity(draggingItem?.droppedId == item.id ? 0.3 : 1.0)
-                                .gesture(
+                                .simultaneousGesture(
                                     DragGesture(coordinateSpace: .global)
                                         .onChanged { value in
                                             // Arrastrando un alimento que ya estaba en el plato
@@ -155,47 +155,27 @@ struct FoodView: View {
             }
             .ignoresSafeArea(edges: .top)
             
-            // Botón de regresar (izquierda)
-            VStack {
-                HStack {
-                    Button(action: {}) {
-                        Image(systemName: "chevron.left")
-                            .font(.title2)
-                            .foregroundColor(.white)
-                            .padding()
-                    }
-                    
-                    Spacer()
-                    
-                    
-                }
-                .padding(.top, 50)
-                Spacer()
-            }
             
             // Botón de instrucciones (derecha)
-            GeometryReader { geo in
-                Button(action: {
-                    tts.textToSpeech = "Arrastra los alimentos al plato para crear una comida balanceada. Intenta incluir alimentos de todas las categorías"
-                    tts.speak()
-                }) {
-                    ZStack {
-                        Circle()
-                            .fill(Color.white)
-                            .frame(width: 50, height: 50)
+            Button(action: {
+                tts.textToSpeech = "Arrastra los alimentos al plato para crear una comida balanceada. Intenta incluir alimentos de todas las categorías"
+                tts.speak()
+            }) {
+                ZStack {
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 50, height: 50)
 
-                        Text("?")
-                            .font(.custom("CherryBombOne-Regular", size: 28))
-                            .foregroundColor(Color(red: 45/255, green: 114/255, blue: 218/255))
-                    }
+                    Text("?")
+                        .font(.custom("CherryBombOne-Regular", size: 28))
+                        .foregroundColor(Color(red: 45/255, green: 114/255, blue: 218/255))
                 }
-                // Posición ABSOLUTA en pantalla
-                .position(
-                    x: geo.size.width - 40,   // 40 px desde el borde derecho
-                    y: 70                     // 40 px desde el borde superior
-                )
             }
-            .ignoresSafeArea()  // asegura que puede ir al borde superior real
+            // Posición ABSOLUTA en pantalla
+            .position(
+                x: 350,   // 40 px desde el borde derecho
+                y: 30                     // 40 px desde el borde superior
+            )
 
             
             // Item siendo arrastrado (desde menú o desde plato)

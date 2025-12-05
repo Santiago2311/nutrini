@@ -172,7 +172,7 @@ struct ContentView: View {
                         Spacer()
                         
                         Button(action: {
-                            tts.textToSpeech = "Selecciona una actividad para empezar a jugar y aprender sobre alimentación saludable"
+                            tts.textToSpeech = "Juega y ayuda a Nutrini a mantenerse sano"
                             tts.speak()
                         }) {
                             ZStack {

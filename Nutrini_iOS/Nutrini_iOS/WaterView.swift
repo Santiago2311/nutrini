@@ -23,11 +23,14 @@ struct WaterView: View {
     @AppStorage("waterStarsDate") private var waterStarsDate: String = ""
 
     var body: some View {
-        ZStack {
+        ZStack (alignment: .topTrailing) {
             backgroundView
             nutriniView
             objectsView
             textView
+            
+            
+            instructionButton
             
             if waterModel.isGameOver {
                 gameOverOverlay
@@ -39,12 +42,13 @@ struct WaterView: View {
         .onDisappear {
             waterModel.stopGame()
         }
-        .gesture(
-            DragGesture(minimumDistance: 0)
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 10)
                 .onChanged { value in
                     waterModel.nutriniX = value.location.x
                 }
         )
+        
         .ignoresSafeArea()
     }
 
@@ -77,18 +81,29 @@ struct WaterView: View {
                 
                 Spacer()
                 
-                VStack {
-                    InstructionsButton(tts: tts, message: "Mueve a Nutrini para atrapar los vasos de agua y evita el refresco. Intenta alcanzar 8 vasos")
-                        .padding(.trailing, 30)
-                        .padding(.top, 30)
-                    
-                    Spacer()
-                }
-               
             }
             .padding()
         }
 
+    var instructionButton: some View {
+        Button(action: {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                tts.textToSpeech = "Mueve a Nutrini para atrapar los vasos de agua y evita el refresco. Intenta alcanzar 8 vasos"
+                tts.speak()
+            }
+        }) {
+            Circle()
+                .fill(Color.white)
+                .frame(width: 50, height: 50)
+                .overlay(
+                    Text("?")
+                        .font(.custom("CherryBombOne-Regular", size: 28))
+                        .foregroundColor(Color(red: 45/255, green: 114/255, blue: 218/255))
+                )
+        }
+        .padding(.top, 50)
+        .padding(.trailing, 60)
+    }
     // MARK: - FONDO
 
     var backgroundView: some View {
