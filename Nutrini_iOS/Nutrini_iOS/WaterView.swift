@@ -205,6 +205,10 @@ struct WaterView: View {
         let today = formatter.string(from: Date())
         
         waterStars = stars
+        
+        
+        
+        
         waterStarsDate = today
     }
 

@@ -56,7 +56,9 @@ class ExerciseModel: ObservableObject {
     let maxYGap: CGFloat = 500          // Espacio máximo entre grupos
     let platformSpacing: CGFloat = 70       // Separación dentro de un grupo
     
-    var gameTimer: Timer?                   // Timer que actualiza el juego 60 veces/seg
+    @Published var gameTimer: Timer?                   // Timer que actualiza el juego 60 veces/seg
+    @Published var timeElapsed: Double = 0.0
+    @Published var finalTime: Double = 0.0
     var lastPlatformX: CGFloat = 0          // Última posición X donde generamos plataforma
     var lastPlatformY: CGFloat = 0          // Última posición y donde generamos plataforma
     
@@ -107,6 +109,7 @@ class ExerciseModel: ObservableObject {
     
     //funcionamiento real del juego
     func updateGame() {
+        self.timeElapsed += 1.0/60.0  // ⭐ Incrementar tiempo (1/60 por frame)
         
         //Si el juego se acaba, no hacer nada
         guard !isGameOver else { return }
@@ -290,6 +293,7 @@ class ExerciseModel: ObservableObject {
     func checkGameOver() {
         //Si nutrini cae debajo de la pantalla
         if nutriniY > 500 {
+            finalTime = timeElapsed
             gameOver()
         }
     }
@@ -301,6 +305,8 @@ class ExerciseModel: ObservableObject {
     
     func restartGame() {
         // === RESETEAR TODAS LAS VARIABLES ===
+        timeElapsed = 0.0
+        finalTime = 0.0
         
         // Posición
         nutriniY = 250
@@ -330,4 +336,3 @@ class ExerciseModel: ObservableObject {
     }
     
 }
-

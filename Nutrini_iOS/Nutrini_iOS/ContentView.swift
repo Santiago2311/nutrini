@@ -11,7 +11,11 @@ struct ContentView: View {
     @AppStorage("waterStars") private var waterStars: Int = 0
     @AppStorage("waterStarsDate") private var waterStarsDate: String = ""
     
-    // Progreso (0.25, 0.5, 0.75, 1.0) según estrellas
+    // Progreso diario del juego de ejercicio
+    @AppStorage("exerciseStars") private var exerciseStars: Int = 0
+    @AppStorage("exerciseStarsDate") private var exerciseStarsDate: String = ""
+    
+    // === COMIDA ===
     private var foodProgress: Double {
         switch foodStars {
         case 3: return 1.0
@@ -21,11 +25,10 @@ struct ContentView: View {
         }
     }
     
-    // Color según estrellas
     private var foodColor: Color {
         switch foodStars {
         case 3:
-            return Color(red: 80/255, green: 151/255, blue: 29/255) // verde
+            return Color(red: 80/255, green: 151/255, blue: 29/255)
         case 2:
             return .yellow
         case 1:
@@ -35,21 +38,20 @@ struct ContentView: View {
         }
     }
     
-    // Progreso (0.25, 0.5, 0.75, 1.0) según estrellas de agua
+    // === AGUA ===
     private var waterProgress: Double {
         switch waterStars {
         case 3: return 1.0
         case 2: return 0.75
         case 1: return 0.5
-        default: return 0.25    // no ha jugado o 0 estrellas
+        default: return 0.25
         }
     }
 
-    // Color según estrellas de agua
     private var waterColor: Color {
         switch waterStars {
         case 3:
-            return Color(red: 80/255, green: 151/255, blue: 29/255) // verde
+            return Color(red: 80/255, green: 151/255, blue: 29/255)
         case 2:
             return .yellow
         case 1:
@@ -58,23 +60,40 @@ struct ContentView: View {
             return .red
         }
     }
-
+    
+    // === EJERCICIO ===
+    private var exerciseProgress: Double {
+        switch exerciseStars {
+        case 3: return 1.0
+        case 2: return 0.75
+        case 1: return 0.5
+        default: return 0.25
+        }
+    }
+    
+    private var exerciseColor: Color {
+        switch exerciseStars {
+        case 3:
+            return Color(red: 80/255, green: 151/255, blue: 29/255)
+        case 2:
+            return .yellow
+        case 1:
+            return .orange
+        default:
+            return .red
+        }
+    }
     
     var body: some View {
         NavigationStack {
             ZStack {
-                
-                // Fondo
                 Color(red: 45/255, green: 114/255, blue: 218/255)
                     .ignoresSafeArea()
                 
                 VStack {
-                    
-                    
                     Spacer()
                     Spacer()
                     
-                    // Mascota en el centro
                     Image("mascota_icon")
                         .onTapGesture {
                             tts.textToSpeech = "¡Hola, soy tu amigo Nutrini!"
@@ -83,10 +102,8 @@ struct ContentView: View {
                     
                     Spacer()
                     
-                    // HStack inferior
                     HStack(spacing: 10) {
                         NavigationLink(destination: FoodView()) {
-                            // Progreso Comida
                             MenuButton(
                                 iconName: "comida_icon",
                                 label: "Comida",
@@ -103,15 +120,13 @@ struct ContentView: View {
                                 progressColor: waterColor
                             )
                         }
-
                         
                         NavigationLink(destination: ExerciseView()) {
-                            // Por ahora, base 25% rojo
                             MenuButton(
                                 iconName: "ejercicio_icon",
                                 label: "Ejercicio",
-                                progress: 0.25,
-                                progressColor: .red
+                                progress: exerciseProgress,
+                                progressColor: exerciseColor
                             )
                         }
                     }
@@ -120,7 +135,6 @@ struct ContentView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 
-                // Logo en esquina superior izquierda
                 VStack {
                     HStack {
                         VStack {
@@ -134,40 +148,49 @@ struct ContentView: View {
                         Spacer()
                     }
                     Spacer()
-                    
                 }
             }
         }
         .onAppear {
             resetFoodProgressIfNeeded()
             resetWaterProgressIfNeeded()
+            resetExerciseProgressIfNeeded()
         }
     }
     
-    // Resetea el progreso de comida si cambió el día
+    // === RESET DIARIO ===
     private func resetFoodProgressIfNeeded() {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         let today = formatter.string(from: Date())
         
         if foodStarsDate != today {
-            foodStars = 0          // vuelve al estado 0 estrellas → 25% rojo
-            foodStarsDate = today  // marca el día actual
+            foodStars = 0
+            foodStarsDate = today
         }
     }
     
-    // Resetea el progreso de agua si cambió el día
     private func resetWaterProgressIfNeeded() {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         let today = formatter.string(from: Date())
         
         if waterStarsDate != today {
-            waterStars = 0          // vuelve al estado base → 25% rojo
-            waterStarsDate = today  // marca el día actual
+            waterStars = 0
+            waterStarsDate = today
         }
     }
-
+    
+    private func resetExerciseProgressIfNeeded() {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        let today = formatter.string(from: Date())
+        
+        if exerciseStarsDate != today {
+            exerciseStars = 0
+            exerciseStarsDate = today
+        }
+    }
 }
 
 struct MenuButton: View {
@@ -189,7 +212,6 @@ struct MenuButton: View {
                 .foregroundColor(.white)
             
             ZStack {
-                // Contorno
                 RoundedRectangle(cornerRadius: 4)
                     .stroke(Color.black, lineWidth: 2)
                     .frame(height: 26)
@@ -200,11 +222,10 @@ struct MenuButton: View {
                             tint: progressColor
                         )
                     )
-                    .scaleEffect(x: 1, y: 6, anchor: .center) // barra gruesa
+                    .scaleEffect(x: 1, y: 6, anchor: .center)
                     .padding(.horizontal, 2)
             }
             .padding(.horizontal, 10)
-            
         }
         .frame(maxWidth: .infinity)
         .onLongPressGesture {
