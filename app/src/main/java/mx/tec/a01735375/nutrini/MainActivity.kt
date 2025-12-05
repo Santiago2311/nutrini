@@ -34,6 +34,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
@@ -106,7 +107,8 @@ fun PetCareScreen(navController: NavController, viewModel: ScoresViewModel = vie
             // Pet Image Area
             PetImageArea(
                 modifier = Modifier
-                    .weight(1f)
+                    .weight(1f),
+                scoreData
             )
 
             // Bottom Navigation
@@ -157,7 +159,17 @@ fun HealthBar(modifier: Modifier = Modifier, percentage: Float) {
 }
 
 @Composable
-fun PetImageArea(modifier: Modifier = Modifier) {
+fun PetImageArea(modifier: Modifier = Modifier, scoreData: ScoresState) {
+    var petImageVal: Painter
+    if (scoreData.score3 <= 0.5) {
+        petImageVal = painterResource(id = R.drawable.mascota_ejercicio)
+    } else if (scoreData.score2 <= 0.5) {
+        petImageVal = painterResource(id = R.drawable.mascota_agua)
+    } else if (scoreData.score1 <= 0.5) {
+        petImageVal = painterResource(id = R.drawable.mascota_comida)
+    } else {
+        petImageVal = painterResource(id = R.drawable.mascota)
+    }
     Box(
         modifier = modifier
             .aspectRatio(1f)
@@ -166,7 +178,7 @@ fun PetImageArea(modifier: Modifier = Modifier) {
         contentAlignment = Alignment.Center
     ) {
         Image(
-            painter = painterResource(id = R.drawable.mascota),
+            painter = petImageVal,
             contentDescription = "Pet Image",
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Fit

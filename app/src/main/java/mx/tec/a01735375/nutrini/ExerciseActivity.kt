@@ -26,6 +26,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -113,16 +114,6 @@ fun ExerciseView(navController: NavController, viewModel: ScoresViewModel = view
         score >= 20 -> 2
         score >= 10 -> 1
         else -> 0
-    }
-
-    if (stars == 3) {
-        viewModel.saveScore(3, 1f)
-    } else if (stars == 2){
-        viewModel.saveScore(3, 0.75f)
-    } else if (stars == 1) {
-        viewModel.saveScore(3, 0.5f)
-    } else {
-        viewModel.saveScore(3, 0.25f)
     }
 
     // Countdown de 3 segundos al inicio
@@ -277,7 +268,16 @@ fun ExerciseView(navController: NavController, viewModel: ScoresViewModel = view
 
         // Botón de retroceso
         IconButton(
-            onClick = { navController.navigate("MainView") },
+            onClick = { navController.navigate("MainView")
+                if (stars == 3) {
+                    viewModel.saveScore(3, 1f)
+                } else if (stars == 2){
+                    viewModel.saveScore(3, 0.75f)
+                } else if (stars == 1) {
+                    viewModel.saveScore(3, 0.5f)
+                } else {
+                    viewModel.saveScore(3, 0.25f)
+                }},
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(16.dp)
@@ -384,8 +384,19 @@ fun ExerciseView(navController: NavController, viewModel: ScoresViewModel = view
             }
 
             // Dibujar mascota
+            val scoreData = viewModel.state.collectAsState().value
+            var petImageVal: Painter
+            if (scoreData.score3 <= 0.5) {
+                petImageVal = painterResource(id = R.drawable.mascota_ejercicio)
+            } else if (scoreData.score2 <= 0.5) {
+                petImageVal = painterResource(id = R.drawable.mascota_agua)
+            } else if (scoreData.score1 <= 0.5) {
+                petImageVal = painterResource(id = R.drawable.mascota_comida)
+            } else {
+                petImageVal = painterResource(id = R.drawable.mascota)
+            }
             Image(
-                painter = painterResource(id = R.drawable.mascota),
+                painter = petImageVal,
                 contentDescription = "Pet",
                 modifier = Modifier
                     .offset(petFixedX.dp, petY.dp)
@@ -522,6 +533,15 @@ fun ExerciseView(navController: NavController, viewModel: ScoresViewModel = view
                                 runAnimation.snapTo(0f)
                                 bounceAnimation.snapTo(0f)
                             }
+                            if (stars == 3) {
+                                viewModel.saveScore(3, 1f)
+                            } else if (stars == 2){
+                                viewModel.saveScore(3, 0.75f)
+                            } else if (stars == 1) {
+                                viewModel.saveScore(3, 0.5f)
+                            } else {
+                                viewModel.saveScore(3, 0.25f)
+                            }
                         }
                     ) {
                         Text("Reintentar")
@@ -529,7 +549,16 @@ fun ExerciseView(navController: NavController, viewModel: ScoresViewModel = view
                 },
                 dismissButton = {
                     Button(
-                        onClick = { navController.navigate("MainView") }
+                        onClick = { navController.navigate("MainView")
+                            if (stars == 3) {
+                                viewModel.saveScore(3, 1f)
+                            } else if (stars == 2){
+                                viewModel.saveScore(3, 0.75f)
+                            } else if (stars == 1) {
+                                viewModel.saveScore(3, 0.5f)
+                            } else {
+                                viewModel.saveScore(3, 0.25f)
+                            }}
                     ) { Text("Salir") }
                 }
             )

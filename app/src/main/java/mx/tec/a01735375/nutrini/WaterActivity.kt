@@ -39,6 +39,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.positionInRoot
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -277,8 +278,19 @@ fun WaterView(
             Box(
                 modifier = Modifier.fillMaxSize()
             ) {
+                val scoreData = viewModel.state.collectAsState().value
+                var petImageVal: Painter
+                if (scoreData.score3 <= 0.5) {
+                    petImageVal = painterResource(id = R.drawable.mascota_ejercicio)
+                } else if (scoreData.score2 <= 0.5) {
+                    petImageVal = painterResource(id = R.drawable.mascota_agua)
+                } else if (scoreData.score1 <= 0.5) {
+                    petImageVal = painterResource(id = R.drawable.mascota_comida)
+                } else {
+                    petImageVal = painterResource(id = R.drawable.mascota)
+                }
                 Image(
-                    painter = painterResource(id = R.drawable.mascota),
+                    painter = petImageVal,
                     contentDescription = "Pet",
                     modifier = Modifier
                         .offset { IntOffset(vm.petXOffset.roundToInt(), petYOffsetPx.roundToInt()) }
