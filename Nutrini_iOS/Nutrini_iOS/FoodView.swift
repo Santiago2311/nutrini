@@ -174,29 +174,28 @@ struct FoodView: View {
             }
             
             // Botón de instrucciones (derecha)
-            VStack {
-                HStack {
-                    Spacer()
-                    
-                    Button(action: {
-                        tts.textToSpeech = "Arrastra los alimentos al plato para crear una comida balanceada. Intenta incluir alimentos de todas las categorías"
-                        tts.speak()
-                    }) {
-                        ZStack {
-                            Circle()
-                                .fill(Color.white)
-                                .frame(width: 50, height: 50)
-                            
-                            Text("?")
-                                .font(.custom("CherryBombOne-Regular", size: 28))
-                                .foregroundColor(Color(red: 45/255, green: 114/255, blue: 218/255))
-                        }
+            GeometryReader { geo in
+                Button(action: {
+                    tts.textToSpeech = "Arrastra los alimentos al plato para crear una comida balanceada. Intenta incluir alimentos de todas las categorías"
+                    tts.speak()
+                }) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.white)
+                            .frame(width: 50, height: 50)
+
+                        Text("?")
+                            .font(.custom("CherryBombOne-Regular", size: 28))
+                            .foregroundColor(Color(red: 45/255, green: 114/255, blue: 218/255))
                     }
-                    .padding(.trailing, 15)
                 }
-                
-                Spacer()
+                // Posición ABSOLUTA en pantalla
+                .position(
+                    x: geo.size.width - 40,   // 40 px desde el borde derecho
+                    y: 70                     // 40 px desde el borde superior
+                )
             }
+            .ignoresSafeArea()  // asegura que puede ir al borde superior real
 
             
             // Item siendo arrastrado (desde menú o desde plato)
