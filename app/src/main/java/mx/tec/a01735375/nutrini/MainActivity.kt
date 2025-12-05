@@ -99,10 +99,20 @@ fun PetCareScreen(navController: NavController, viewModel: ScoresViewModel = vie
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
+            Box()
+            {
+                Image(
+                    painter = painterResource(R.drawable.logo),
+                    contentDescription = "Logo BAMX",
+                    modifier = Modifier
+                        .size(134.dp)
+                        .align(Alignment.TopStart)
+                )
+            }
             // Health Bar
             //HealthBar(modifier = Modifier.padding(horizontal = 16.dp))
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             // Pet Image Area
             PetImageArea(
@@ -189,7 +199,8 @@ fun PetImageArea(modifier: Modifier = Modifier, scoreData: ScoresState) {
 @Composable
 fun BottomNavigation(modifier: Modifier = Modifier, navController: NavController, scoreData: ScoresState) {
     Row(
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier
+            .fillMaxWidth()
             .padding(bottom = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
