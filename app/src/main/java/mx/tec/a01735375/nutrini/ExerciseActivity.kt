@@ -3,6 +3,7 @@ package mx.tec.a01735375.nutrini
 import android.annotation.SuppressLint
 import android.content.pm.ActivityInfo
 import android.os.Bundle
+import android.speech.tts.TextToSpeech
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.Help
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,8 +27,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -34,6 +38,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.Locale
 import kotlin.random.Random
 
 data class Platform(
@@ -53,10 +58,31 @@ enum class GameState {
 fun ExerciseView(navController: NavController, viewModel: ScoresViewModel = viewModel()) {
     LockScreenOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE)
 
+    val context = LocalContext.current
+
+    // Configuración de TTS
+    var tts by remember { mutableStateOf<TextToSpeech?>(null) }
+    var ttsInitialized by remember { mutableStateOf(false) }
+
+    DisposableEffect(Unit) {
+        tts = TextToSpeech(context) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                tts?.language = Locale("es", "MX")
+                ttsInitialized = true
+            }
+        }
+        onDispose {
+            tts?.stop()
+            tts?.shutdown()
+        }
+    }
+
     var gameState by remember { mutableStateOf(GameState.PLAYING) }
     var score by remember { mutableStateOf(0) }
     var scrollSpeed by remember { mutableStateOf(5f) }
     var showDialog by remember { mutableStateOf(false) }
+    var showInstructions by remember { mutableStateOf(false) }
+    var gamePausedForInstructions by remember { mutableStateOf(false) }
     var countdown by remember { mutableStateOf(3) }
     var gameStarted by remember { mutableStateOf(false) }
 
@@ -142,8 +168,8 @@ fun ExerciseView(navController: NavController, viewModel: ScoresViewModel = view
     }
 
     // LOOP DEL JUEGO
-    LaunchedEffect(gameState, gameStarted) {
-        if (gameState == GameState.PLAYING && gameStarted) {
+    LaunchedEffect(gameState, gameStarted, gamePausedForInstructions) {
+        if (gameState == GameState.PLAYING && gameStarted && !gamePausedForInstructions) {
             var lastFrameTime = 0L
 
             while (gameState == GameState.PLAYING) {
@@ -265,6 +291,40 @@ fun ExerciseView(navController: NavController, viewModel: ScoresViewModel = view
             )
         }
 
+        // Botón de ayuda
+        IconButton(
+            onClick = {
+                showInstructions = true
+                gamePausedForInstructions = true
+                // Reproducir instrucciones con TTS
+                if (ttsInitialized) {
+                    val instructions = "Instrucciones del juego: Toca la pantalla para hacer saltar a la mascota. " +
+                            "El objetivo es saltar de plataforma en plataforma sin caer. " +
+                            "Cada plataforma que superes suma un punto. " +
+                            "La velocidad aumenta cada 10 puntos. " +
+                            "Consigue 10 puntos para una estrella, 20 puntos para dos estrellas, y 30 puntos para tres estrellas. " +
+                            "Intenta conseguir el mayor puntaje posible"
+                    tts?.speak(
+                        instructions,
+                        TextToSpeech.QUEUE_FLUSH,
+                        null,
+                        "instructions"
+                    )
+                }
+            },
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(start = 70.dp, top = 16.dp)
+                .zIndex(10f)
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Help,
+                contentDescription = "Ayuda",
+                tint = Color.White,
+                modifier = Modifier.size(40.dp)
+            )
+        }
+
         // Marcador de puntos
         Column(
             modifier = Modifier
@@ -344,6 +404,64 @@ fun ExerciseView(navController: NavController, viewModel: ScoresViewModel = view
                         }
                     }
                     .zIndex(5f)
+            )
+        }
+
+        // Diálogo de instrucciones
+        if (showInstructions) {
+            // Overlay de pausa
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f))
+                    .zIndex(15f)
+            )
+
+            AlertDialog(
+                onDismissRequest = {
+                    showInstructions = false
+                    gamePausedForInstructions = false
+                    tts?.stop()
+                },
+                title = {
+                    Text(
+                        text = "📖 Instrucciones",
+                        fontFamily = cherryFamily,
+                        fontSize = 24.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                },
+                text = {
+                    Column(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = "• Toca la pantalla para hacer saltar a la mascota\n\n" +
+                                    "• Salta de plataforma en plataforma sin caer\n\n" +
+                                    "• Cada plataforma superada suma 1 punto\n\n" +
+                                    "• La velocidad aumenta cada 10 puntos\n\n" +
+                                    "• Sistema de estrellas:\n" +
+                                    "  - 1 estrella: 10 puntos\n" +
+                                    "  - 2 estrellas: 20 puntos\n" +
+                                    "  - 3 estrellas: 30 puntos\n\n" +
+                                    "• ¡Consigue el mayor puntaje posible!",
+                            fontSize = 16.sp,
+                            lineHeight = 20.sp
+                        )
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showInstructions = false
+                            gamePausedForInstructions = false
+                            tts?.stop()
+                        }
+                    ) {
+                        Text("Entendido")
+                    }
+                }
             )
         }
 

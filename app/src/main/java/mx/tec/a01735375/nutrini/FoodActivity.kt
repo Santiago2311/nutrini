@@ -2,6 +2,7 @@ package mx.tec.a01735375.nutrini
 
 import android.content.pm.ActivityInfo
 import android.os.Bundle
+import android.speech.tts.TextToSpeech
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -15,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Help
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,10 +25,12 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -35,8 +39,10 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.google.rpc.Help
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.Locale
 import kotlin.math.pow
 import kotlin.math.sqrt
 
@@ -61,11 +67,31 @@ data class PlacedFood(
 fun FoodView(navController: NavController, viewModel: ScoresViewModel = viewModel()) {
     LockScreenOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
 
+    val context = LocalContext.current
+
+    // Configuración de TTS
+    var tts by remember { mutableStateOf<TextToSpeech?>(null) }
+    var ttsInitialized by remember { mutableStateOf(false) }
+
+    DisposableEffect(Unit) {
+        tts = TextToSpeech(context) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                tts?.language = Locale("es", "MX")
+                ttsInitialized = true
+            }
+        }
+        onDispose {
+            tts?.stop()
+            tts?.shutdown()
+        }
+    }
+
     var foodsOnPlate by remember { mutableStateOf<List<PlacedFood>>(emptyList()) }
     var plateBounds by remember { mutableStateOf<Rect?>(null) }
     var showDialog by remember { mutableStateOf(false) }
     var dialogMessage by remember { mutableStateOf("") }
     var isWinner by remember { mutableStateOf(false) }
+    var showInstructions by remember { mutableStateOf(false) }
 
     // Estado para la imagen arrastrada
     var draggingFood by remember { mutableStateOf<Food?>(null) }
@@ -93,6 +119,16 @@ fun FoodView(navController: NavController, viewModel: ScoresViewModel = viewMode
                         if (isInsidePlate(finalPosition, bounds)) {
                             // Agregar alimento al plato exactamente donde se soltó
                             foodsOnPlate = foodsOnPlate + PlacedFood(food, finalPosition)
+
+                            // Reproducir nombre del alimento
+                            if (ttsInitialized) {
+                                tts?.speak(
+                                    food.label,
+                                    TextToSpeech.QUEUE_FLUSH,
+                                    null,
+                                    "food_${food.id}"
+                                )
+                            }
                         }
                     }
                     draggingFood = null
@@ -110,9 +146,40 @@ fun FoodView(navController: NavController, viewModel: ScoresViewModel = viewMode
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 20.dp, end = 20.dp),
-                    horizontalArrangement = Arrangement.End
+                        .padding(top = 20.dp, start = 20.dp, end = 20.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
+                    // Botón de ayuda
+                    IconButton(
+                        onClick = {
+                            showInstructions = true
+                            // Reproducir instrucciones con TTS
+                            if (ttsInitialized) {
+                                val instructions = "Instrucciones del juego: Mantén presionado un alimento durante un segundo para arrastrarlo. " +
+                                        "Suéltalo dentro del plato para agregarlo. " +
+                                        "Si quieres eliminarlo, arrástralo fuera del plato o hacia el bote de basura. " +
+                                        "El objetivo es crear un plato balanceado con todos los grupos de alimentos: " +
+                                        "origen animal, cereales, frutas y vegetales, leguminosas y grasas saludables. " +
+                                        "Cuando termines, presiona el botón Listo para verificar tu plato."
+                                tts?.speak(
+                                    instructions,
+                                    TextToSpeech.QUEUE_FLUSH,
+                                    null,
+                                    "instructions"
+                                )
+                            }
+                        },
+                        modifier = Modifier.size(60.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Help,
+                            contentDescription = "Ayuda",
+                            tint = Color(0xFF4A90E2),
+                            modifier = Modifier.size(40.dp)
+                        )
+                    }
+
                     Image(
                         painter = painterResource(id = R.drawable.eliminar),
                         contentDescription = "Trash",
@@ -205,6 +272,15 @@ fun FoodView(navController: NavController, viewModel: ScoresViewModel = viewMode
                         isWinner = result.first
                         dialogMessage = result.second
                         showDialog = true
+                        // Anunciar resultado
+                        if (ttsInitialized) {
+                            val message = if (isWinner) {
+                                "¡Excelente! Tu plato está perfectamente balanceado"
+                            } else {
+                                "Tu plato no está balanceado. ¡Intenta agregar más alimentos!"
+                            }
+                            tts?.speak(message, TextToSpeech.QUEUE_FLUSH, null, "result_message")
+                        }
                     },
                     modifier = Modifier
                         .width(140.dp)
@@ -247,6 +323,55 @@ fun FoodView(navController: NavController, viewModel: ScoresViewModel = viewMode
                     alpha = 0.9f
                 )
             }
+        }
+
+        // Diálogo de instrucciones
+        if (showInstructions) {
+            AlertDialog(
+                onDismissRequest = {
+                    showInstructions = false
+                    tts?.stop()
+                },
+                title = {
+                    Text(
+                        text = "Instrucciones",
+                        fontFamily = cherryFamily,
+                        fontSize = 24.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                },
+                text = {
+                    Column(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = "• Mantén presionado un alimento durante 1 segundo para arrastrarlo\n\n" +
+                                    "• Suéltalo dentro del plato para agregarlo\n\n" +
+                                    "• Arrastra fuera del plato o hacia el bote de basura para eliminarlo\n\n" +
+                                    "• Crea un plato balanceado con todos los grupos de alimentos:\n" +
+                                    "  - Origen animal\n" +
+                                    "  - Cereales\n" +
+                                    "  - Frutas y vegetales\n" +
+                                    "  - Leguminosas\n" +
+                                    "  - Grasas saludables\n\n" +
+                                    "• Presiona '¡Listo!' cuando termines",
+                            fontSize = 16.sp,
+                            lineHeight = 20.sp
+                        )
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showInstructions = false
+                            tts?.stop()
+                        }
+                    ) {
+                        Text("Entendido")
+                    }
+                }
+            )
         }
 
         // Mensaje de resultado
