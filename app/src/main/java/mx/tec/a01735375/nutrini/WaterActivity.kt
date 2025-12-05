@@ -2,6 +2,7 @@
 package mx.tec.a01735375.nutrini
 
 import android.content.pm.ActivityInfo
+import android.speech.tts.TextToSpeech
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -33,6 +34,10 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Help
+import androidx.compose.material.icons.filled.Help
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.layout.ContentScale
@@ -41,6 +46,10 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 
@@ -185,8 +194,25 @@ fun WaterView(
     viewModel: ScoresViewModel = viewModel()
 ) {
     LockScreenOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
+    val context = LocalContext.current
 
-    // UI sizes in dp
+    var tts by remember { mutableStateOf<TextToSpeech?>(null) }
+    var ttsInitialized by remember { mutableStateOf(false) }
+    var showInstructions by remember { mutableStateOf(false) }
+
+    DisposableEffect(Unit) {
+        tts = TextToSpeech(context) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                tts?.language = java.util.Locale("es", "MX")
+                ttsInitialized = true
+            }
+        }
+        onDispose {
+            tts?.stop()
+            tts?.shutdown()
+        }
+    }
+
     val petSizeDp = 150.dp
     val itemSizeDp = 80.dp
     val hitboxWdp = 100.dp
@@ -234,7 +260,26 @@ fun WaterView(
                 .height(maxHeight * 0.65f),
             navController = navController,
             score = vm.score,
-            lives = vm.lives
+            lives = vm.lives,
+            onHelpClick = {
+                showInstructions = true
+                // Reproducir instrucciones con TTS
+                if (ttsInitialized) {
+                    val instructions =
+                        "Instrucciones del juego: Arrastra a la mascota de izquierda a derecha " +
+                                "para atrapar los vasos de agua que caen. " +
+                                "Evita las latas de refresco, ya que te quitan vidas. " +
+                                "El objetivo es atrapar 8 vasos de agua sin perder todas tus vidas. " +
+                                "Tienes 3 vidas para completar el juego. " +
+                                "Consigue 2 puntos para una estrella, 5 puntos para dos estrellas, y 8 puntos para tres estrellas."
+                    tts?.speak(
+                        instructions,
+                        TextToSpeech.QUEUE_FLUSH,
+                        null,
+                        "instructions"
+                    )
+                }
+            }
         )
 
         // ---------------------------------------------
@@ -308,46 +353,164 @@ fun WaterView(
                 )
             }
 
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            val scoreData = viewModel.state.collectAsState().value
+            var petImageVal: Painter
+            if (scoreData.score3 <= 0.5) {
+                petImageVal = painterResource(id = R.drawable.mascota_ejercicio)
+            } else if (scoreData.score2 <= 0.5) {
+                petImageVal = painterResource(id = R.drawable.mascota_agua)
+            } else if (scoreData.score1 <= 0.5) {
+                petImageVal = painterResource(id = R.drawable.mascota_comida)
+            } else {
+                petImageVal = painterResource(id = R.drawable.mascota)
+            }
+            Image(
+                painter = petImageVal,
+                contentDescription = "Pet",
+                modifier = Modifier
+                    .offset { IntOffset(vm.petXOffset.roundToInt(), petYOffsetPx.roundToInt()) }
+                    .size(petSizeDp)
+                    .pointerInput(Unit) {
+                        detectDragGestures { change, dragAmount ->
+                            change.consume()
+                            vm.movePetTo(vm.petXOffset + dragAmount.x) // clamps inside VM
+                        }
+                    }
+                    .onGloballyPositioned { coords ->
+                        vm.setPetY(coords.positionInRoot().y)
+                    },
+                contentScale = ContentScale.Fit
+            )
+        }
+
+        // ---------------------------------------------
+        // INSTRUCTIONS DIALOG
+        // ---------------------------------------------
+        if (showInstructions) {
+            AlertDialog(
+                onDismissRequest = {
+                    showInstructions = false
+                    tts?.stop()
+                },
+                title = {
+                    Text(
+                        text = "📖 Instrucciones",
+                        fontFamily = cherryFamily,
+                        fontSize = 24.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                },
+                text = {
+                    Column(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = "• Arrastra a la mascota de izquierda a derecha\n\n" +
+                                    "• Atrapa los vasos de agua que caen\n\n" +
+                                    "• Evita las latas de refresco (te quitan vidas)\n\n" +
+                                    "• Objetivo: Atrapar 8 vasos de agua\n\n" +
+                                    "• Tienes 3 vidas\n\n" +
+                                    "• Sistema de estrellas:\n" +
+                                    "  - 1 estrella: 2 puntos\n" +
+                                    "  - 2 estrellas: 5 puntos\n" +
+                                    "  - 3 estrellas: 8 puntos\n\n" +
+                                    "• ¡Consigue el mejor puntaje!",
+                            fontSize = 16.sp,
+                            lineHeight = 20.sp
+                        )
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showInstructions = false
+                            tts?.stop()
+                        }
+                    ) {
+                        Text("Entendido")
+                    }
+                }
+            )
+        }
+
             // ---------------------------------------------
             // GAME OVER OVERLAY
             // ---------------------------------------------
-            if (vm.gameOver) {
-                val stars = when {
-                    vm.score >= 8 -> 3
-                    vm.score >= 5 -> 2
-                    vm.score >= 2 -> 1
-                    else -> 0
-                }
-                if (stars == 3) {
-                    viewModel.saveScore(2, 1f)
-                } else if (stars == 2){
-                    viewModel.saveScore(2, 0.75f)
-                } else if (stars == 1) {
-                    viewModel.saveScore(2, 0.5f)
-                } else {
-                    viewModel.saveScore(2, 0.25f)
-                }
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.6f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        if (vm.gameOver) {
+            val stars = when {
+                vm.score >= 8 -> 3
+                vm.score >= 5 -> 2
+                vm.score >= 2 -> 1
+                else -> 0
+            }
+            if (stars == 3) {
+                viewModel.saveScore(2, 1f)
+            } else if (stars == 2){
+                viewModel.saveScore(2, 0.75f)
+            } else if (stars == 1) {
+                viewModel.saveScore(2, 0.5f)
+            } else {
+                viewModel.saveScore(2, 0.25f)
+            }
+
+            AlertDialog(
+                onDismissRequest = {},
+                title = {
+                    Text(
+                        text = "¡Juego Terminado!",
+                        fontFamily = cherryFamily,
+                        fontSize = 28.sp
+                    )
+                },
+                text = {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
                         Text(
-                            text = "Game Over",
-                            color = Color.White,
-                            fontSize = 32.sp,
-                            fontWeight = FontWeight.Bold
+                            text = "Vasos atrapados: ${vm.score}",
+                            fontSize = 20.sp
                         )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.padding(vertical = 12.dp)
+                        ) {
+                            repeat(3) { index ->
+                                Text(
+                                    text = if (index < stars) "⭐" else "☆",
+                                    fontSize = 40.sp
+                                )
+                            }
+                        }
                         Text(
-                            text = "Score: ${vm.score}",
-                            color = Color.White,
-                            fontSize = 24.sp
+                            text = "¡Intenta superar tu récord!",
+                            fontSize = 20.sp
                         )
                     }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            vm.resetGame()
+                        }
+                    ) {
+                        Text("Reintentar")
+                    }
+                },
+                dismissButton = {
+                    Button(
+                        onClick = {
+                            navController.navigate("MainView")
+                        }
+                    ) {
+                        Text("Salir")
+                    }
                 }
-            }
+            )
+        }
     }
 }
 
@@ -357,6 +520,7 @@ fun WaterView(
     navController: NavController,
     score: Int,
     lives: Int,
+    onHelpClick: () -> Unit = {},
     viewModel: ScoresViewModel = viewModel()
 ) {
     var textColor = Color.White
@@ -390,6 +554,21 @@ fun WaterView(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Back",
+                tint = Color.White,
+                modifier = Modifier.size(40.dp)
+            )
+        }
+
+        IconButton(
+            onClick = onHelpClick,
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(start = 70.dp, top = 32.dp)
+                .zIndex(10f)
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Help,
+                contentDescription = "Ayuda",
                 tint = Color.White,
                 modifier = Modifier.size(40.dp)
             )
