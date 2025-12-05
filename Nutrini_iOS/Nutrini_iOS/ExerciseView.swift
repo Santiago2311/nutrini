@@ -1,7 +1,8 @@
-//  ExerciseView.swift
+// ExerciseView.swift
 
 import SwiftUI
 
+// --- Función de Lógica de Resultado (No necesita cambios) ---
 private func getGameResult(time: Double) -> (stars: Int, message: String) {
     switch time {
     case 0...10:
@@ -13,6 +14,7 @@ private func getGameResult(time: Double) -> (stars: Int, message: String) {
     }
 }
 
+// --- Estructura Principal de la Vista ---
 struct ExerciseView: View {
     @AppStorage("exerciseStars") private var exerciseStars: Int = 0
     @AppStorage("exerciseStarsDate") private var exerciseStarsDate: String = ""
@@ -22,11 +24,11 @@ struct ExerciseView: View {
     
     //Crear una instancia del ViewModel
     @StateObject private var exerciseModel = ExerciseModel()
-    @StateObject private var tts = TTSManager()
+    @StateObject private var tts = TTSManager() // Necesario para el botón de instrucciones
     
     var body: some View {
         ZStack {
-            // Esta capa tiene el gesto de salto
+            // Capa del Juego con Gesto de Salto
             ZStack {
                 backgroundView
                 platformsView
@@ -45,8 +47,9 @@ struct ExerciseView: View {
                     }
             )
             
-            // Esta capa NO tiene el gesto de salto, solo el botón posicionado
-            instructionsButton
+            // 🔥 CAPA CORREGIDA: Textos y Botón de Instrucciones
+            // Esta capa está FUERA del gesto de toque del juego.
+            textView
             
             if exerciseModel.isGameOver {
                 gameOverOverlay
@@ -54,6 +57,7 @@ struct ExerciseView: View {
         }
         .onAppear {
             exerciseModel.generateInitialPlatforms()
+            // Asume que OrientationManager.lockOrientation es una función válida
             OrientationManager.lockOrientation(.landscape) // 🔒 horizontal
         }
         .onDisappear {
@@ -63,12 +67,43 @@ struct ExerciseView: View {
         .ignoresSafeArea()
     }
     
-    // SUBVISTAS
+    // MARK: - SUBVISTAS
+    
+    // 🔥 NUEVA SUBVISTA PARA TEXTOS Y BOTÓN (Corrige el problema del botón)
+    var textView: some View {
+        HStack {
+            
+            VStack(alignment: .leading) {
+                // Muestra el tiempo de juego
+                Text("Tiempo: \(String(format: "%.1f", exerciseModel.timeElapsed))s")
+                    .font(.custom("CherryBombOne-Regular", size: 32))
+                    .foregroundColor(.white)
+                    .padding(.top, 30)
+                
+                Spacer()
+            }
+            .padding(.leading, 30)
+            
+            Spacer()
+            
+            VStack {
+                // Se usa el componente InstructionsButton de WaterView
+                InstructionsButton(tts: tts, message: "Toca la pantalla para hacer que Nutrini salte de plataforma en plataforma. Intenta mantenerlo corriendo por 30 segundos")
+                    .padding(.trailing, 30)
+                    .padding(.top, 30)
+                
+                Spacer()
+            }
+        }
+        .padding()
+    }
+    
+    // --- Subvista de Fondo (Sin cambios) ---
     var backgroundView: some View {
         ZStack {
             Color.blue
                 .ignoresSafeArea()
-            
+            // ... (nubes)
             HStack {
                 Image("nube")
                     .resizable()
@@ -98,6 +133,7 @@ struct ExerciseView: View {
         }
     }
     
+    // --- Subvista de Plataformas (Sin cambios) ---
     var platformsView: some View {
         ZStack {
             ForEach(exerciseModel.platforms) { platform in
@@ -111,6 +147,7 @@ struct ExerciseView: View {
         }
     }
     
+    // --- Subvista de Nutrini (Sin cambios) ---
     var nutriniView: some View {
         Image("mascota_icon")
             .resizable()
@@ -122,27 +159,7 @@ struct ExerciseView: View {
                 y: exerciseModel.nutriniY)
     }
     
-    var instructionsButton: some View {
-        GeometryReader { geometry in
-            Button(action: {
-                tts.textToSpeech = "Toca la pantalla para hacer que Nutrini salte de plataforma en plataforma. Intenta mantenerlo corriendo por 30 segundos"
-                tts.speak()
-            }) {
-                ZStack {
-                    Circle()
-                        .fill(Color.white)
-                        .frame(width: 50, height: 50)
-                    
-                    Text("?")
-                        .font(.custom("CherryBombOne-Regular", size: 28))
-                        .foregroundColor(Color(red: 45/255, green: 114/255, blue: 218/255))
-                }
-            }
-            .position(x: geometry.size.width - 55, y: 55)
-        }
-        .allowsHitTesting(true)
-    }
-    
+    // --- Subvista de Game Over (Sin cambios) ---
     var gameOverOverlay: some View {
         let result = getGameResult(time: exerciseModel.timeElapsed)
         
@@ -212,6 +229,7 @@ struct ExerciseView: View {
     
     // MARK: - FUNCIONES
     
+    // --- Función para guardar estrellas (Sin cambios) ---
     private func saveExerciseStars(stars: Int) {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
