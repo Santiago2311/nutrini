@@ -17,6 +17,25 @@ struct ContentView: View {
     @AppStorage("exerciseStars") private var exerciseStars: Int = 0
     @AppStorage("exerciseStarsDate") private var exerciseStarsDate: String = ""
     
+    private var mascotIconName: String {
+        // 1. Prioridad: Juego Agua < 2 estrellas
+        if waterStars < 2 {
+            return "mascota_deshidratada"
+        }
+        // 2. Siguiente Prioridad: Juego Ejercicio < 2 estrellas
+        else if exerciseStars < 2 {
+            return "mascota_sedentaria"
+        }
+        // 3. Siguiente Prioridad: Juego Comida < 2 estrellas
+        else if foodStars < 2 {
+            return "mascota_desnutrida"
+        }
+        // 4. Si todas las condiciones anteriores son falsas
+        else {
+            return "mascota_icon" // Ícono de mascota saludable
+        }
+    }
+    
     // === COMIDA ===
     private var foodProgress: Double {
         switch foodStars {
@@ -96,7 +115,10 @@ struct ContentView: View {
                     Spacer()
                     Spacer()
                     
-                    Image("mascota_icon")
+                    Image(mascotIconName)
+                        .resizable()             // Permite cambiar el tamaño
+                        .scaledToFit()           // Mantiene la proporción de la imagen
+                        .frame(height: 350)
                         .onTapGesture {
                             tts.textToSpeech = "¡Hola, soy tu amigo Nutrini!"
                             tts.speak()
@@ -150,7 +172,7 @@ struct ContentView: View {
                         Spacer()
                         
                         Button(action: {
-                            tts.textToSpeech = "Juega y ayuda a Nutrini a mantenerse sano"
+                            tts.textToSpeech = "Selecciona una actividad para empezar a jugar y aprender sobre alimentación saludable"
                             tts.speak()
                         }) {
                             ZStack {
